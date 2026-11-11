@@ -1,0 +1,12 @@
+[Unit]
+Description=Visual Logbook boot image (the aeroplane photo)
+After=local-fs.target
+
+[Service]
+Type=oneshot
+User=pi
+WorkingDirectory=/home/pi/Visual-Logbook
+ExecStart=/usr/bin/python3 /home/pi/Visual-Logbook/show_boot.py
+
+[Install]
+WantedBy=multi-user.target

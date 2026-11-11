@@ -67,7 +67,29 @@ python3 make_poster.py poster.png
 - Re-run `python3 show_poster.py` after any edit. The map re-fits
   itself to the airports in the log.
 
-## 5. Keeping it current (manual, for now)
+## 5. The boot picture
+
+Drop a photo of the aeroplane in the project folder as `plane.jpg`,
+then:
+
+```
+python3 show_boot.py
+```
+
+builds `boot.png` (cropped to 5:3, caption band with the tail number
+from `legs.json`, converted to the panel's six colours) and puts it
+on the panel. To have it greet you at every power-up:
+
+```
+sudo cp visual-logbook-boot.service /etc/systemd/system/
+sudo systemctl enable visual-logbook-boot.service
+```
+
+(edit the `User=` and paths in the unit first if your user or clone
+folder differs). E-paper holds its last image, so the photo is also
+simply what the frame shows whenever it's off.
+
+## 6. Keeping it current (manual, for now)
 
 After a flight, add the leg to `legs.json`, bump `hours`, and re-run.
 Automatic FlightAware updates are on the roadmap.

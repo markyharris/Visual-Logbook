@@ -29,6 +29,10 @@ shuttle drawn thickest of all (flown six times).
 - `show_poster.py` — renders and pushes the poster to the panel via
   Pimoroni's `inky` library. A full Spectra 6 refresh takes about
   30 seconds; the picture then stays with the power off.
+- `make_boot.py` / `show_boot.py` — the boot picture: the aeroplane's
+  own photo (drop it in as `plane.jpg`), cropped and converted to the
+  six-colour palette with a caption band, shown at power-up before
+  the poster. `visual-logbook-boot.service` runs it at boot.
 
 ## Quick start
 
