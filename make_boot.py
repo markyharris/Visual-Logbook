@@ -19,8 +19,32 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 W, H = 800, 480
 BAND = 54
 HOME_LABEL = "FLAGSTAFF, ARIZONA"
-SERIF_B = "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"
-SANS = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+_FONT_DIRS = ("/usr/share/fonts/truetype/dejavu",
+              "/usr/share/fonts/truetype/liberation")
+_FONT_FILES = {
+    "serif_b": ("DejaVuSerif-Bold.ttf", "LiberationSerif-Bold.ttf"),
+    "serif": ("DejaVuSerif.ttf", "LiberationSerif-Regular.ttf"),
+    "sans_b": ("DejaVuSans-Bold.ttf", "LiberationSans-Bold.ttf"),
+    "sans": ("DejaVuSans.ttf", "LiberationSans-Regular.ttf"),
+}
+
+
+def _font(style):
+    """First installed file for a font style (DejaVu or Liberation).
+
+    A bare Pi OS image may ship neither: install fonts-dejavu-core.
+    """
+    for name in _FONT_FILES[style]:
+        for folder in _FONT_DIRS:
+            path = os.path.join(folder, name)
+            if os.path.exists(path):
+                return path
+    raise OSError(
+        f"no {style} font found - run: sudo apt install fonts-dejavu-core")
+
+
+SERIF_B = _font("serif_b")
+SANS = _font("sans")
 
 SPECTRA = [(0, 0, 0), (255, 255, 255), (0, 160, 0), (0, 0, 200),
            (210, 0, 0), (240, 200, 0)]

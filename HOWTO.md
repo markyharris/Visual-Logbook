@@ -30,7 +30,7 @@ Inky Impression 7.3" (Spectra 6) colour e-paper display.
 
 ```
 sudo apt update
-sudo apt install -y git python3-pip python3-pil
+sudo apt install -y git python3-pip python3-pil fonts-dejavu-core
 pip3 install --break-system-packages inky
 git clone https://github.com/markyharris/Visual-Logbook.git
 cd Visual-Logbook

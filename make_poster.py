@@ -27,10 +27,34 @@ BLUE = (0, 0, 180)
 RED = (200, 0, 0)
 YELLOW = (235, 190, 0)
 
-SERIF_B = "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"
-SERIF = "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"
-SANS_B = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-SANS = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+_FONT_DIRS = ("/usr/share/fonts/truetype/dejavu",
+              "/usr/share/fonts/truetype/liberation")
+_FONT_FILES = {
+    "serif_b": ("DejaVuSerif-Bold.ttf", "LiberationSerif-Bold.ttf"),
+    "serif": ("DejaVuSerif.ttf", "LiberationSerif-Regular.ttf"),
+    "sans_b": ("DejaVuSans-Bold.ttf", "LiberationSans-Bold.ttf"),
+    "sans": ("DejaVuSans.ttf", "LiberationSans-Regular.ttf"),
+}
+
+
+def _font(style):
+    """First installed file for a font style (DejaVu or Liberation).
+
+    A bare Pi OS image may ship neither: install fonts-dejavu-core.
+    """
+    for name in _FONT_FILES[style]:
+        for folder in _FONT_DIRS:
+            path = os.path.join(folder, name)
+            if os.path.exists(path):
+                return path
+    raise OSError(
+        f"no {style} font found - run: sudo apt install fonts-dejavu-core")
+
+
+SERIF_B = _font("serif_b")
+SERIF = _font("serif")
+SANS_B = _font("sans_b")
+SANS = _font("sans")
 
 HOME = "KFLG"
 
