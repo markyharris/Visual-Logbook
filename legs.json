@@ -1,0 +1,181 @@
+{
+ "tail": "N26MR",
+ "aircraft": "Cirrus SR22T",
+ "hours": 37.1,
+ "legs": [
+  {
+   "date": "2026-07-07",
+   "dep": "KDLH",
+   "arr": "KDLH",
+   "nm": 0
+  },
+  {
+   "date": "2026-07-08",
+   "dep": "KDLH",
+   "arr": "KDLH",
+   "nm": 0
+  },
+  {
+   "date": "2026-07-09",
+   "dep": "KDLH",
+   "arr": "KDLH",
+   "nm": 0
+  },
+  {
+   "date": "2026-07-09",
+   "dep": "KDLH",
+   "arr": "KDLH",
+   "nm": 0
+  },
+  {
+   "date": "2026-07-15",
+   "dep": "KDLH",
+   "arr": "KPWK",
+   "nm": 338
+  },
+  {
+   "date": "2026-07-15",
+   "dep": "KPWK",
+   "arr": "KTYS",
+   "nm": 420
+  },
+  {
+   "date": "2026-07-17",
+   "dep": "KTYS",
+   "arr": "KTYS",
+   "nm": 0
+  },
+  {
+   "date": "2026-07-17",
+   "dep": "KTYS",
+   "arr": "KTYS",
+   "nm": 0
+  },
+  {
+   "date": "2026-07-18",
+   "dep": "KRWN",
+   "arr": "KRWN",
+   "nm": 0
+  },
+  {
+   "date": "2026-07-23",
+   "dep": "4V1",
+   "arr": "KFLG",
+   "nm": 366
+  },
+  {
+   "date": "2026-07-27",
+   "dep": "KDHT",
+   "arr": "KFYV",
+   "nm": 407
+  },
+  {
+   "date": "2026-07-29",
+   "dep": "KPVE",
+   "arr": "M01",
+   "nm": 95
+  },
+  {
+   "date": "2026-07-31",
+   "dep": "KHRX",
+   "arr": "KFLG",
+   "nm": 460
+  },
+  {
+   "date": "2026-08-02",
+   "dep": "KFLG",
+   "arr": "KGEU",
+   "nm": 102
+  },
+  {
+   "date": "2026-08-03",
+   "dep": "KGEU",
+   "arr": "KFLG",
+   "nm": 102
+  },
+  {
+   "date": "2026-08-14",
+   "dep": "KFLG",
+   "arr": "KINW",
+   "nm": 47
+  },
+  {
+   "date": "2026-08-14",
+   "dep": "KINW",
+   "arr": "KFLG",
+   "nm": 47
+  },
+  {
+   "date": "2026-08-26",
+   "dep": "KFLG",
+   "arr": "KGEU",
+   "nm": 102
+  },
+  {
+   "date": "2026-08-29",
+   "dep": "KGEU",
+   "arr": "KFLG",
+   "nm": 102
+  },
+  {
+   "date": "2026-09-13",
+   "dep": "KFLG",
+   "arr": "KPUC",
+   "nm": 272
+  },
+  {
+   "date": "2026-09-13",
+   "dep": "KPUC",
+   "arr": "KJAC",
+   "nm": 240
+  },
+  {
+   "date": "2026-09-16",
+   "dep": "KJAC",
+   "arr": "46U",
+   "nm": 29
+  },
+  {
+   "date": "2026-09-21",
+   "dep": "46U",
+   "arr": "KFLG",
+   "nm": 484
+  },
+  {
+   "date": "2026-10-09",
+   "dep": "KBGD",
+   "arr": "KBBG",
+   "nm": 400
+  },
+  {
+   "date": "2026-10-14",
+   "dep": "KBBG",
+   "arr": "KOJA",
+   "nm": 272
+  },
+  {
+   "date": "2026-10-14",
+   "dep": "KOJA",
+   "arr": "KSAF",
+   "nm": 362
+  },
+  {
+   "date": "2026-10-14",
+   "dep": "KSAF",
+   "arr": "KFLG",
+   "nm": 275
+  },
+  {
+   "date": "2026-10-15",
+   "dep": "KFLG",
+   "arr": "KGEU",
+   "nm": 102
+  },
+  {
+   "date": "2026-10-18",
+   "dep": "KGEU",
+   "arr": "KFLG",
+   "nm": 102
+  }
+ ]
+}
