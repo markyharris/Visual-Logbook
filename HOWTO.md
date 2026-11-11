@@ -26,6 +26,17 @@ Inky Impression 7.3" (Spectra 6) colour e-paper display.
 
    Interface Options → SPI → Yes, and I2C → Yes. Reboot.
 
+4. Free the SPI chip-select pin. The inky library drives chip
+   select in software, so the kernel's SPI driver must not claim
+   GPIO8 — without this step the run stops with "some pins we need
+   are in use! Chip Select … claimed by spi0 CS0" (Pimoroni's own
+   troubleshooting note):
+
+   ```
+   echo "dtoverlay=spi0-0cs" | sudo tee -a /boot/firmware/config.txt
+   sudo reboot
+   ```
+
 ## 2. Install the software
 
 ```
