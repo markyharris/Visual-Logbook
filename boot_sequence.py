@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Boot sequence: the display plane's photo, a dwell, then its poster.
+"""Boot sequence: the display plane's intro (photo, or a title
+page if it has no photo), a dwell, then its poster.
 
-Run by visual-logbook-boot.service. The dwell (seconds the photo
-stays up, complete) is dwell_seconds in config.json — set it on the
-admin page.
+Run by visual-logbook-boot.service. The dwell (seconds the intro
+stays up, complete) is dwell_seconds in config.json — set it on
+the admin page.
 """
 import os
 import sys

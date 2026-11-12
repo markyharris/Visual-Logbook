@@ -45,12 +45,12 @@ def next_tail(cfg, current):
 
 
 def show_plane(cfg, tail):
-    """A plane's turn: its photo first (when it has one and the
-    dwell is above zero), held for the dwell, then its poster for
-    the rest of the slot."""
+    """A plane's turn: its intro first (photo, or a title page if
+    it has no photo), held for the dwell, then its poster for the
+    rest of the slot."""
     dwell = int(cfg.get("dwell_seconds", 30))
     if dwell > 0:
-        show_boot.show(tail)          # quietly skips photo-less planes
+        show_boot.show(tail)          # photo, or a title page if none
         time.sleep(dwell)
     show_poster.show(tail)
 

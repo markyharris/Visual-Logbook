@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Show a plane's boot image (its photo) on the panel.
+"""Show a plane's intro image on the panel: its photo if it has
+one, otherwise a generated title page (tail number card).
 
 Run on the Pi:  python3 show_boot.py [--tail N26MR]
 
 Looks for boot_<TAIL>.png (built from plane_<TAIL>.jpg on first
 run); the original single-plane names boot.png / plane.jpg still
-work for the first plane. If no photo exists it exits quietly —
-the poster flow never depends on it.
+work for the first plane. A plane with no photo gets a title page
+from make_title (title_<TAIL>.png, rebuilt each show so edits to
+the plane's type or home base land immediately).
 """
 import argparse
 import os
@@ -32,12 +34,15 @@ def show(tail=None):
     if boot is None:
         legacy = ["plane.jpg"] if tail == first else []
         photo = _first(f"plane_{tail}.jpg", *legacy)
+        data = logbook.load_plane(tail, cfg)
         if photo is None:
-            print(f"no photo for {tail}; skipping boot image")
-            return
-        import make_boot
-        boot = os.path.join(HERE, f"boot_{tail}.png")
-        make_boot.main(photo, boot, logbook.load_plane(tail, cfg))
+            import make_title
+            boot = os.path.join(HERE, f"title_{tail}.png")
+            make_title.main(boot, data)
+        else:
+            import make_boot
+            boot = os.path.join(HERE, f"boot_{tail}.png")
+            make_boot.main(photo, boot, data)
 
     from inky.auto import auto
     from PIL import Image
