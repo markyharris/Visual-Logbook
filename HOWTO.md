@@ -147,6 +147,10 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
   `plane_<TAIL>.jpg` and its boot image rebuilds automatically) —
   or drop the file into the project folder yourself.
 - **Admin page controls** — what each one does:
+  - *Tail number* (plane row, and the Flights page heading):
+    a US N-number links to its FAA Registry record — registered
+    owner, serial, airworthiness and expiration dates — in a
+    new tab. Non-US tails stay plain text.
   - *Poster* (plane row): render that plane's poster fresh and
     put it on the panel now (a full refresh takes ~30 s). The
     panel is e-paper — it holds the last image shown until

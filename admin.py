@@ -30,6 +30,26 @@ def esc(s):
     return html.escape(str(s if s is not None else ""), quote=True)
 
 
+FAA_REGISTRY = ("https://registry.faa.gov/AircraftInquiry/Search/"
+                "NNumberResult?nNumberTxt=")
+
+
+def tail_html(tail):
+    """The tail as a link to its FAA registration record.
+
+    US N-numbers only — anything else (foreign registrations,
+    military serials) stays plain text, since the FAA N-Number
+    inquiry would have nothing for it.
+    """
+    t = str(tail).upper()
+    if (len(t) > 1 and t.startswith("N")
+            and all(c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+                    for c in t)):
+        return (f"<a href='{FAA_REGISTRY}{t}' target='_blank' "
+                f"rel='noopener'>{esc(t)}</a>")
+    return esc(t)
+
+
 def run_bg(*args):
     subprocess.Popen([sys.executable] + list(args), cwd=HERE,
                      stdout=subprocess.DEVNULL,
@@ -92,7 +112,7 @@ def page(msg=""):
             lf_txt += f" ({esc(lf['note'])})"
         star = " ★" if tail == disp else ""
         out.append(
-            f"<tr><td><b>{esc(tail)}</b>{star}</td>"
+            f"<tr><td><b>{tail_html(tail)}</b>{star}</td>"
             f"<td>{esc(p['type'])}</td><td>{esc(p['home'])}</td>"
             f"<td>{n}</td><td>{hrs:.1f}</td><td>{esc(last)}</td>"
             f"<td>{lf_txt}</td><td>"
@@ -270,7 +290,7 @@ def flights_page(cfg, tail):
             "<style>body{font-family:sans-serif;margin:16px}"
             "table{border-collapse:collapse}td,th{border:1px solid "
             "#999;padding:4px 8px}</style>"
-            f"<h1>{esc(tail)} — {esc(data.get('aircraft', ''))}</h1>"
+            f"<h1>{tail_html(tail)} — {esc(data.get('aircraft', ''))}</h1>"
             f"<p>{len(rows)} flights · {t_nm:,.0f} NM · "
             f"{t_time:.1f} h timed flights "
             f"(plane total {data.get('hours', 0):.1f} h)</p>"
