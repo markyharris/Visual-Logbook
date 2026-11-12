@@ -57,6 +57,7 @@ def parse_flights(payload):
             "date": t_off.date().isoformat(),
             "dep": dep.upper(), "arr": arr.upper(),
             "hours": round((t_on - t_off).total_seconds() / 3600, 1),
+            "off": off, "on": on,
         })
     return out
 
@@ -86,7 +87,8 @@ def fetch_plane(cfg, tail, key, now):
             data["legs"].append({
                 "date": fl["date"], "dep": fl["dep"],
                 "arr": fl["arr"], "nm": leg_nm(fl["dep"], fl["arr"]),
-                "fa_id": fl["fa_id"]})
+                "fa_id": fl["fa_id"], "time": fl["hours"],
+                "off": fl["off"], "on": fl["on"]})
             data["hours"] = round(data.get("hours", 0)
                                   + fl["hours"], 1)
             known.add(fl["fa_id"])

@@ -9,6 +9,7 @@ admin pages — no login, don't expose it beyond the home network.
 
 Run:  python3 admin.py            (visual-logbook-admin.service)
 """
+import csv
 import html
 import io
 import os
@@ -74,7 +75,8 @@ def page(msg=""):
         out.append("<p class=msg><b>Update available</b> — see the "
                    "Update section below.</p>")
     out.append(f"<p>On display: <b>{esc(disp)}</b> · "
-               f"{len(cfg['planes'])} of {logbook.MAX_PLANES} planes</p>")
+               f"{len(cfg['planes'])} of {logbook.MAX_PLANES} planes · "
+               f"<a href='/export'>Download all flights (CSV)</a></p>")
 
     # ---- planes table ---------------------------------------------
     out.append("<h2>Aircraft</h2><table><tr><th>Tail</th><th>Type</th>"
@@ -98,6 +100,7 @@ def page(msg=""):
             f"<input type=hidden name=tail value='{esc(tail)}'>"
             f"<button name=what value=poster>Poster</button>"
             f"<button name=what value=photo>Photo</button></form> "
+            f"<a href='/flights?tail={esc(tail)}'>Flights</a> "
             f"<form method=post action=/set_display "
             f"style=display:inline><input type=hidden name=tail "
             f"value='{esc(tail)}'><button>Set display</button></form> "
@@ -211,6 +214,60 @@ def page(msg=""):
     return "".join(out)
 
 
+CSV_FIELDS = ["Date", "Tail", "Type", "From", "To", "NM",
+              "FlightTime", "OffUTC", "OnUTC", "Source"]
+
+
+def flights_csv(cfg, tails):
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(CSV_FIELDS)
+    for tail in tails:
+        data = logbook.load_plane(tail, cfg)
+        for leg in data.get("legs", []):
+            w.writerow([
+                leg.get("date", ""), tail, data.get("aircraft", ""),
+                leg.get("dep", ""), leg.get("arr", ""),
+                leg.get("nm", ""), leg.get("time", ""),
+                leg.get("off", ""), leg.get("on", ""),
+                "manual" if str(leg.get("fa_id", "")).startswith(
+                    "manual") else (
+                    "FlightAware" if leg.get("fa_id") else "log")])
+    return buf.getvalue()
+
+
+def flights_page(cfg, tail):
+    data = logbook.load_plane(tail, cfg)
+    rows = []
+    t_nm = t_time = 0.0
+    for leg in data.get("legs", []):
+        t_nm += leg.get("nm", 0) or 0
+        t_time += leg.get("time", 0) or 0
+        rows.append(
+            f"<tr><td>{esc(leg.get('date', ''))}</td>"
+            f"<td>{esc(leg.get('dep', ''))}</td>"
+            f"<td>{esc(leg.get('arr', ''))}</td>"
+            f"<td>{esc(leg.get('nm', ''))}</td>"
+            f"<td>{esc(leg.get('time', ''))}</td>"
+            f"<td>{esc(leg.get('off', ''))}</td>"
+            f"<td>{esc(leg.get('on', ''))}</td></tr>")
+    return ("<!doctype html><meta name=viewport "
+            "content='width=device-width,initial-scale=1'>"
+            f"<title>{esc(tail)} flights</title>"
+            "<style>body{font-family:sans-serif;margin:16px}"
+            "table{border-collapse:collapse}td,th{border:1px solid "
+            "#999;padding:4px 8px}</style>"
+            f"<h1>{esc(tail)} — {esc(data.get('aircraft', ''))}</h1>"
+            f"<p>{len(rows)} flights · {t_nm:,.0f} NM · "
+            f"{t_time:.1f} h timed flights "
+            f"(plane total {data.get('hours', 0):.1f} h)</p>"
+            f"<p><a href='/export?tail={esc(tail)}'>"
+            "Download CSV</a> · <a href='/'>Back to admin</a></p>"
+            "<table><tr><th>Date</th><th>From</th><th>To</th>"
+            "<th>NM</th><th>Time (h)</th><th>Off (UTC)</th>"
+            "<th>On (UTC)</th></tr>" + "".join(rows) + "</table>")
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *a):
         pass
@@ -287,7 +344,29 @@ class Handler(BaseHTTPRequestHandler):
         self._send(page(msg))
 
     def do_GET(self):
-        path = urlparse(self.path).path
+        parsed = urlparse(self.path)
+        path = parsed.path
+        if path in ("/export", "/flights"):
+            cfg = logbook.load_config()
+            q = {k: v[0] for k, v in
+                 parse_qs(parsed.query).items()}
+            if path == "/flights":
+                self._send(flights_page(
+                    cfg, q.get("tail", cfg["display_tail"])))
+                return
+            tail = q.get("tail")
+            tails = [tail] if tail else [p["tail"]
+                                          for p in cfg["planes"]]
+            body = flights_csv(cfg, tails).encode()
+            name = f"visual-logbook-{tail or 'all'}.csv"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/csv")
+            self.send_header("Content-Disposition",
+                             f"attachment; filename={name}")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if path in ("/favicon.jpg", "/favicon.ico", "/favicon.png"):
             try:
                 import favicon_data
@@ -380,9 +459,12 @@ class Handler(BaseHTTPRequestHandler):
                         nm = round(greatcircle.nm(a, b))
                     else:
                         nm = 0
-                data["legs"].append({
+                leg = {
                     "date": f["date"], "dep": dep, "arr": arr,
-                    "nm": int(nm), "fa_id": f"manual-{f['date']}-{dep}-{arr}"})
+                    "nm": int(nm), "fa_id": f"manual-{f['date']}-{dep}-{arr}"}
+                if f.get("hours"):
+                    leg["time"] = float(f["hours"])
+                data["legs"].append(leg)
                 if f.get("hours"):
                     data["hours"] = round(
                         float(data.get("hours", 0)) +

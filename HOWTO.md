@@ -153,6 +153,16 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
   redraws itself if that plane is on display. Airports not in the
   bundled US dataset appear under "Unknown airports" in the admin;
   give their coordinates once and they're never asked again.
+- **Flight data out**: every plane's row has a **Flights** link —
+  its full history with dates, routes, miles and (for fetched
+  flights) off/on times and per-flight hours — plus a CSV
+  download; the header has "Download all flights (CSV)". The CSV
+  (Date, Tail, Type, From, To, NM, FlightTime, OffUTC, OnUTC,
+  Source) drops straight into a spreadsheet or a logbook import.
+  Fetched flights carry their times; hand-added flights carry a
+  time if you entered hours; the seed log's flights predate
+  per-flight times, so their time cells are blank while the
+  plane's Hobbs total still shows on the poster.
 - **Rotation**: in Settings, tick "Rotate posters automatically"
   and set the minutes per poster — the panel cycles every plane
   that has flights (visual-logbook-rotate.service). Manual shows
