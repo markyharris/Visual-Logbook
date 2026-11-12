@@ -237,7 +237,10 @@ def page(msg=""):
                f"{'checked' if cfg.get('rotate') else ''}> "
                f"Rotate posters automatically</label> "
                f"every <input name=rotate_minutes size=3 "
-               f"value={int(cfg.get('rotate_minutes', 10))}> minutes "
+               f"value={int(cfg.get('rotate_minutes', 10))}> minutes<br>"
+               f"Poster map shows last <input name=poster_recent "
+               f"size=4 value={int(cfg.get('poster_recent', 0) or 0)}> "
+               "flights (0 = all) "
                "<button>Save settings</button></form>"
                "<form method=post action=/fetch_now>"
                f"<button {WATCH_ONCLICK}>Check flights now</button>"
@@ -563,6 +566,12 @@ class Handler(BaseHTTPRequestHandler):
                 cfg["rotate"] = f.get("rotate") == "yes"
                 cfg["rotate_minutes"] = max(
                     1, int(f.get("rotate_minutes") or 10))
+                try:
+                    cfg["poster_recent"] = max(
+                        0, min(500,
+                               int(f.get("poster_recent") or 0)))
+                except ValueError:
+                    cfg["poster_recent"] = 0
                 logbook.save_config(cfg)
                 msg = "Settings saved."
             elif path == "/fetch_now":

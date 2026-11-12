@@ -13,12 +13,36 @@ import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+def poster_data(data, cfg):
+    """Plane data with draw_legs set when a poster window is on.
+
+    Settings' poster_recent (0 = all) limits how many of the most
+    recent flights the poster's MAP draws, so a growing log can't
+    crowd the chart into unreadability. The full leg list stays
+    untouched in data["legs"] — header stats keep describing the
+    whole log, and the log itself is never trimmed.
+    """
+    try:
+        n = int(cfg.get("poster_recent", 0) or 0)
+    except (TypeError, ValueError):
+        n = 0
+    legs = data.get("legs", [])
+    if n and len(legs) > n:
+        ordered = [leg for _i, leg in sorted(
+            enumerate(legs),
+            key=lambda item: (str(item[1].get("date", "")), item[0]))]
+        out = dict(data)
+        out["draw_legs"] = ordered[-n:]
+        return out
+    return data
+
+
 def show(tail=None):
     import logbook
     import make_poster
     cfg = logbook.load_config()
     tail = tail or cfg["display_tail"]
-    data = logbook.load_plane(tail, cfg)
+    data = poster_data(logbook.load_plane(tail, cfg), cfg)
     out = os.path.join(HERE, "poster_current.png")
     make_poster.main(out, data)
 

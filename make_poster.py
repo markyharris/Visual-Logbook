@@ -130,17 +130,30 @@ def main(out_path, data=None):
         data = logbook.load_plane(cfg["display_tail"], cfg)
     import datetime
     import logbook
-    airports, _unknown = logbook.airports_for(data)
     home = data.get("home", "KFLG")
     legs = data["legs"]
     for leg in legs:
         if isinstance(leg["date"], str):
             leg["date"] = datetime.date.fromisoformat(leg["date"])
-    timed = [l for l in legs if l["dep"] != l["arr"]]
+    # The map can be windowed to the most recent flights
+    # (Settings -> poster_recent; show_poster sets draw_legs).
+    # Header stats, longest leg and the date range always
+    # describe the FULL log — only the drawn routes and their
+    # airports are windowed, and the log itself is never trimmed.
+    draw = data.get("draw_legs") or legs
+    for leg in draw:
+        if isinstance(leg["date"], str):
+            leg["date"] = datetime.date.fromisoformat(leg["date"])
+    view = dict(data)
+    view["legs"] = draw
+    airports, _unknown = logbook.airports_for(view)
+    timed_all = [l for l in legs if l["dep"] != l["arr"]]
+    timed = [l for l in draw if l["dep"] != l["arr"]]
     total_nm = sum(l["nm"] for l in legs)
     counts = Counter((min(l["dep"], l["arr"]), max(l["dep"], l["arr"]))
                      for l in timed)
-    longest = max(timed, key=lambda l: l["nm"]) if timed else None
+    longest = max(timed_all, key=lambda l: l["nm"]) if timed_all \
+        else None
     first = min((l["date"] for l in legs), default=None)
     last = max((l["date"] for l in legs), default=None)
 
@@ -225,6 +238,13 @@ def main(out_path, data=None):
             continue
         w = d.textlength(abbr, font=f_state)
         d.text((x - w / 2, y - 6), abbr, font=f_state, fill=BLUE)
+
+    # window caption, bottom-left of the map, when the map is
+    # showing fewer flights than the log holds
+    if len(draw) < len(legs):
+        d.text((MX0 + 4, MY1 - 16),
+               f"MAP SHOWS LAST {len(draw)} OF {len(legs)} FLIGHTS",
+               font=f_state, fill=BLACK)
 
     # legs as great-circle arcs, width grows with frequency
     for (a, b), n in sorted(counts.items()):

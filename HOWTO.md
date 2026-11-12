@@ -155,7 +155,12 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
     put it on the panel now (a full refresh takes ~30 s). The
     panel is e-paper — it holds the last image shown until
     something renders a new one, so after a code update a poster
-    only picks up the new look when it's next rendered.
+    only picks up the new look when it's next rendered. If the
+    log outgrows the map, Settings' "Poster map shows last N
+    flights" windows the drawn routes to the N most recent —
+    the poster then captions itself "MAP SHOWS LAST N OF M
+    FLIGHTS", the header stats still describe the full log,
+    and the log itself is never trimmed.
   - *Photo* (plane row): put that plane's photo on the panel —
     or its generated title page (tail, type, home base) if the
     plane has no photo.
