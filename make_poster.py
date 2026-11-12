@@ -163,7 +163,7 @@ def main(out_path):
     f_small = ImageFont.truetype(SANS, 12)
     title = data["tail"]
     tw = d.textlength(title, font=f_title)
-    d.text(((W - tw) / 2, 24), title, font=f_title, fill=BLACK)
+    d.text(((W - tw) / 2, 24), title, font=f_title, fill=BLUE)
     # rules flanking the title
     mid_y = 24 + 30
     d.line([60, mid_y, (W - tw) / 2 - 25, mid_y], fill=RED, width=2)
@@ -239,7 +239,7 @@ def main(out_path):
     cx, cy, r = MX1 - 30, MY0 + 30, 17
     d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=BLACK, width=1)
     d.polygon([(cx, cy - r + 3), (cx - 5, cy + 4), (cx + 5, cy + 4)],
-              fill=BLACK)
+              fill=RED)
     d.text((cx - 4, cy + 6), "N", font=f_small, fill=BLACK)
 
     # ---- airports ---------------------------------------------------
@@ -265,7 +265,8 @@ def main(out_path):
         label = code if code != HOME else "KFLG · HOME"
         lw = d.textlength(label, font=f_lab)
         lx = x + 9 if s == 1 else x - 9 - lw
-        d.text((lx, y + dy), label, font=f_lab, fill=BLACK)
+        d.text((lx, y + dy), label, font=f_lab,
+               fill=RED if code == HOME else BLACK)
 
     # ---- footer stats ----------------------------------------------
     d.line([60, 412, W - 60, 412], fill=BLACK, width=1)
@@ -273,14 +274,14 @@ def main(out_path):
     stats = (f"{len(legs)} FLIGHTS  ·  {data['hours']:.1f} HOURS  ·  "
              f"{total_nm:,} NM  ·  {len(airports)} AIRPORTS")
     sw = d.textlength(stats, font=f_stat)
-    d.text(((W - sw) / 2, 420), stats, font=f_stat, fill=BLACK)
+    d.text(((W - sw) / 2, 420), stats, font=f_stat, fill=BLUE)
     f_note = ImageFont.truetype(SANS, 12)
     note = (f"{first.strftime('%b %-d').upper()} – "
             f"{last.strftime('%b %-d, %Y').upper()}   ·   "
             f"LONGEST LEG: {longest['dep']} → {longest['arr']} · "
             f"{longest['nm']} NM")
     nw = d.textlength(note, font=f_note)
-    d.text(((W - nw) / 2, 446), note, font=f_note, fill=BLACK)
+    d.text(((W - nw) / 2, 446), note, font=f_note, fill=RED)
 
     img.save(out_path)
     print("wrote", out_path)
