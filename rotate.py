@@ -6,10 +6,13 @@ admin page's Settings):
   rotate          on/off
   rotate_minutes  how long each poster stays up (default 10)
 
-Only planes with at least one flight take part. The cycle resumes
-from whatever poster is currently up (state.showing_tail, kept by
-show_poster), so a manual Show or a button press doesn't fight the
-rotation — it just becomes the rotation's new starting point.
+Every configured plane takes part, even one with no logged
+flights yet — it has a poster (seeded hours) and a photo, and
+excluding it left a two-plane frame cycling a single poster
+(fixed Nov 12, 2026). The cycle resumes from whatever poster is
+currently up (state.showing_tail, kept by show_poster), so a
+manual Show or a button press doesn't fight the rotation — it
+just becomes the rotation's new starting point.
 Config is re-read every few seconds, so admin changes land without
 a restart.
 """
@@ -27,12 +30,7 @@ TICK = 10  # seconds between config checks
 
 
 def rotation_tails(cfg):
-    tails = []
-    for p in cfg["planes"]:
-        data = logbook.load_plane(p["tail"], cfg)
-        if data.get("legs"):
-            tails.append(p["tail"])
-    return tails
+    return [p["tail"] for p in cfg["planes"]]
 
 
 def next_tail(cfg, current):

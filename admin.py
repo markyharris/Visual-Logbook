@@ -138,11 +138,12 @@ def page(msg=""):
            "td,th{border:1px solid #999;padding:4px 8px}"
            "input{margin:2px}fieldset{margin:12px 0;"
            "border:1px solid #bbb;border-radius:6px}"
+           "legend{font-weight:bold;padding:0 4px}"
            ".sec-air{background:#e9f1fd}.sec-edit{background:#e7f6ec}"
            ".sec-settings{background:#fff6d9}"
            ".sec-unknown{background:#fdeee2}"
            ".sec-add{background:#f1eafd}.sec-update{background:#e2f5f7}"
-           ".sec-rehome{background:#fdeaea}"
+           ".sec-rehome{background:#fdeaea}.sec-power{background:#e6ebee}"
            ".msg{background:#efe;border:1px solid #9c9;"
            "padding:6px}</style>",
            "<h1><img src=/favicon.jpg alt='' "
@@ -310,6 +311,17 @@ def page(msg=""):
                "I understand — the frame will drop off this network"
                "</label> <button>Forget Wi-Fi and reboot</button>"
                "</form></fieldset>")
+    out.append("<fieldset class=sec-power><legend>Power</legend>"
+               "<form method=post action=/power>"
+               "<button name=act value=blank>Blank screen</button> "
+               "— clear the panel; the frame stays on (with "
+               "rotation on, the next plane's turn redraws it).<br>"
+               "<label><input type=checkbox name=sure value=yes> "
+               "I understand</label> "
+               "<button name=act value=reboot>Reboot</button> "
+               "<button name=act value=shutdown>Shut down</button> "
+               "— shutdown clears the screen first, then powers "
+               "off.</form></fieldset>")
     out.append(WATCH_SCRIPT % json.dumps(status_json(state)))
     out.append("</html>")
     return "".join(out)
@@ -602,6 +614,22 @@ class Handler(BaseHTTPRequestHandler):
                     msg = "Wi-Fi forgotten; rebooting into setup mode."
                 else:
                     msg = "Tick the understand box first."
+            elif path == "/power":
+                act = f.get("act", "")
+                if act == "blank":
+                    run_bg("power.py", "blank")
+                    msg = ("Blanking the panel — give it ~30 s "
+                           "for the refresh.")
+                elif act in ("reboot", "shutdown"):
+                    if f.get("sure") == "yes":
+                        run_bg("power.py", act)
+                        msg = ("Rebooting…" if act == "reboot"
+                               else "Shutting down — the screen "
+                                    "clears first.")
+                    else:
+                        msg = "Tick the understand box first."
+                else:
+                    msg = "Unknown power action."
             else:
                 msg = "Unknown action."
         except Exception as e:  # keep the page alive on bad input

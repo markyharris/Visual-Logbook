@@ -135,7 +135,7 @@ The updater and the rehome button restart things without a
 password prompt; grant exactly those commands:
 
 ```
-echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admin.service visual-logbook-buttons.service visual-logbook-boot.service visual-logbook-rotate.service, /usr/bin/nmcli connection delete *, /usr/bin/reboot" | sudo tee /etc/sudoers.d/visual-logbook
+echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admin.service visual-logbook-buttons.service visual-logbook-boot.service visual-logbook-rotate.service, /usr/bin/nmcli connection delete *, /usr/bin/reboot, /usr/bin/poweroff" | sudo tee /etc/sudoers.d/visual-logbook
 ```
 
 (adjust the user name if yours differs).
@@ -197,6 +197,14 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
   - *Add a flight by hand*: date, from, to, optional NM (blank
     = great-circle computed) and hours; marked "manual" in the
     CSV Source column.
+  - *Power*: Blank screen (drives the panel to white; the frame
+    stays on — with rotation on, the next plane's turn redraws
+    it), Reboot, and Shut down, the last two behind a confirm
+    checkbox. Shutdown blanks the panel FIRST and only then
+    powers off, so a parked frame doesn't hold a poster forever.
+    Reboot/poweroff need the sudoers entries from section 7 —
+    note the /usr/bin/poweroff entry; frames set up before it
+    was added need the sudoers command re-run once.
 - **FlightAware**: get an AeroAPI key (flightaware.com → AeroAPI),
   paste it into Settings. The fetch timer then checks every 6
   hours: completed flights are appended with great-circle miles,
