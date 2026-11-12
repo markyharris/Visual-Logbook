@@ -57,6 +57,7 @@ def page(msg=""):
     disp = cfg["display_tail"]
     out = ["<!doctype html><meta name=viewport "
            "content='width=device-width,initial-scale=1'>"
+           "<link rel=icon type=image/jpeg href=/favicon.jpg>"
            "<title>Visual Logbook</title>"
            "<style>body{font-family:sans-serif;margin:16px;"
            "max-width:860px}table{border-collapse:collapse}"
@@ -64,7 +65,9 @@ def page(msg=""):
            "input{margin:2px}fieldset{margin:12px 0}"
            ".msg{background:#efe;border:1px solid #9c9;"
            "padding:6px}</style>",
-           "<h1>Visual Logbook — Admin</h1>"]
+           "<h1><img src=/favicon.jpg alt='' "
+           "style='height:30px;width:30px;vertical-align:-5px;"
+           "border-radius:4px'> Visual Logbook — Admin</h1>"]
     if msg:
         out.append(f"<p class=msg>{esc(msg)}</p>")
     if state.get("update_available"):
@@ -284,6 +287,21 @@ class Handler(BaseHTTPRequestHandler):
         self._send(page(msg))
 
     def do_GET(self):
+        path = urlparse(self.path).path
+        if path in ("/favicon.jpg", "/favicon.ico", "/favicon.png"):
+            try:
+                import favicon_data
+                b = favicon_data.ICON_JPG
+                self.send_response(200)
+                self.send_header("Content-Type", "image/jpeg")
+                self.send_header("Content-Length", str(len(b)))
+                self.send_header("Cache-Control", "max-age=86400")
+                self.end_headers()
+                self.wfile.write(b)
+            except Exception:
+                self.send_response(404)
+                self.end_headers()
+            return
         self._send(page())
 
     def do_POST(self):
