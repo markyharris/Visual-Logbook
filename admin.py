@@ -12,6 +12,7 @@ Run:  python3 admin.py            (visual-logbook-admin.service)
 import csv
 import html
 import io
+import json
 import os
 import re
 import subprocess
@@ -32,6 +33,58 @@ def esc(s):
 
 FAA_REGISTRY = ("https://registry.faa.gov/AircraftInquiry/Search/"
                 "NNumberResult?nNumberTxt=")
+
+
+def status_dict(state):
+    """The fields the admin page polls to notice a finished job.
+
+    Rendered into the page as a snapshot and served at
+    /status.json; when the two differ, the page reloads itself so
+    a check / update / flight fetch shows its result without a
+    manual refresh (Mark's request, Nov 12, 2026).
+    """
+    lf = {}
+    for tail, info in (state.get("last_fetch") or {}).items():
+        info = info or {}
+        lf[tail] = f"{info.get('when', '')}|{info.get('note', '')}"
+    return {
+        "uc": state.get("last_update_check") or "",
+        "ue": state.get("last_update_check_epoch") or 0,
+        "un": state.get("update_note") or "",
+        "ua": bool(state.get("update_available")),
+        "lf": lf,
+    }
+
+
+def status_json(state):
+    return json.dumps(status_dict(state), sort_keys=True)
+
+
+# Armed by the Check now / Update now / Check flights now buttons
+# (sessionStorage flag, set on click). Polls /status.json every
+# 3 s for up to 5 minutes; reloads the page when the polled status
+# differs from the snapshot rendered into the page. Fetch errors
+# are expected while Update now restarts this very service — keep
+# polling through them.
+WATCH_SCRIPT = (
+    "<script>"
+    "if(sessionStorage.getItem('vlwatch')){"
+    "var VL0=%s;"
+    "var VLend=Date.now()+300000;"
+    "(function poll(){"
+    "if(Date.now()>VLend){sessionStorage.removeItem('vlwatch');"
+    "return;}"
+    "fetch('/status.json',{cache:'no-store'})"
+    ".then(function(r){return r.text();})"
+    ".then(function(t){"
+    "if(t!==VL0){sessionStorage.removeItem('vlwatch');"
+    "location.reload();}"
+    "else{setTimeout(poll,3000);}})"
+    ".catch(function(){setTimeout(poll,3000);});"
+    "})();}"
+    "</script>")
+
+WATCH_ONCLICK = "onclick=\"sessionStorage.setItem('vlwatch','1')\""
 
 
 def tail_html(tail):
@@ -177,7 +230,8 @@ def page(msg=""):
                f"value={int(cfg.get('rotate_minutes', 10))}> minutes "
                "<button>Save settings</button></form>"
                "<form method=post action=/fetch_now>"
-               "<button>Check flights now</button></form>"
+               f"<button {WATCH_ONCLICK}>Check flights now</button>"
+               "</form>"
                "</fieldset>")
 
     # ---- unknown airports + manual leg ------------------------------
@@ -227,10 +281,12 @@ def page(msg=""):
                f"<b>{'yes' if state.get('update_available') else 'no'}"
                f"</b>{note_html}"
                "<form method=post action=/update_check "
-               "style=display:inline> <button>Check now</button>"
+               f"style=display:inline> <button {WATCH_ONCLICK}>"
+               "Check now</button>"
                "</form>"
                "<form method=post action=/update_now "
-               "style=display:inline> <button>Update now</button>"
+               f"style=display:inline> <button {WATCH_ONCLICK}>"
+               "Update now</button>"
                "</form></fieldset>")
     out.append("<fieldset><legend>Rehome (Wi-Fi)</legend>"
                "If this frame moves to a new network or owner: "
@@ -242,6 +298,7 @@ def page(msg=""):
                "I understand — the frame will drop off this network"
                "</label> <button>Forget Wi-Fi and reboot</button>"
                "</form></fieldset>")
+    out.append(WATCH_SCRIPT % json.dumps(status_json(state)))
     out.append("</html>")
     return "".join(out)
 
@@ -381,6 +438,15 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path
+        if path == "/status.json":
+            body = status_json(logbook.load_state()).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if path in ("/export", "/flights"):
             cfg = logbook.load_config()
             q = {k: v[0] for k, v in

@@ -176,6 +176,11 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
   - *Download all flights (CSV)* (page header): every plane's
     log in one CSV, with a Source column (FlightAware, OpenSky,
     manual or log).
+  - *Self-refresh*: after Check now, Update now or Check
+    flights now, the page watches in the background and reloads
+    itself when the job's result lands — no manual refresh
+    needed. (The watch lasts up to 5 minutes and tolerates the
+    admin service's own restart during an update.)
   - *Settings*: the AeroAPI key and the OpenSky client ID/secret
     (password fields — blank keeps what's stored), the photo
     dwell in seconds, and the rotation on/off + minutes per

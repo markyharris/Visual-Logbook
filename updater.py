@@ -13,6 +13,7 @@ import datetime
 import os
 import subprocess
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -33,6 +34,9 @@ def check():
     state = logbook.load_state()
     state["last_update_check"] = datetime.datetime.now().strftime(
         "%Y-%m-%d %H:%M")
+    # Seconds-resolution marker so the admin page's self-refresh
+    # can tell two checks in the same minute apart.
+    state["last_update_check_epoch"] = int(time.time())
     r = git("fetch", "origin", "main")
     if r.returncode != 0:
         state["update_available"] = False
@@ -57,6 +61,7 @@ def apply():
         return
     state["update_available"] = False
     state["update_note"] = "updated just now"
+    state["last_update_check_epoch"] = int(time.time())
     r2 = subprocess.run(["sudo", "-n", "systemctl", "restart"]
                         + SERVICES, capture_output=True, text=True)
     if r2.returncode != 0:
