@@ -20,6 +20,7 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import logbook  # noqa: E402
+import show_boot  # noqa: E402
 import show_poster  # noqa: E402
 
 TICK = 10  # seconds between config checks
@@ -43,6 +44,17 @@ def next_tail(cfg, current):
     return tails[0]
 
 
+def show_plane(cfg, tail):
+    """A plane's turn: its photo first (when it has one and the
+    dwell is above zero), held for the dwell, then its poster for
+    the rest of the slot."""
+    dwell = int(cfg.get("dwell_seconds", 30))
+    if dwell > 0:
+        show_boot.show(tail)          # quietly skips photo-less planes
+        time.sleep(dwell)
+    show_poster.show(tail)
+
+
 def main():
     shown_at = 0.0
     current = logbook.load_state().get("showing_tail")
@@ -59,7 +71,7 @@ def main():
                 nxt = next_tail(cfg, current)
                 if nxt:
                     try:
-                        show_poster.show(nxt)
+                        show_plane(cfg, nxt)
                         current = nxt
                     except Exception as e:
                         print("rotate show failed:", e, flush=True)

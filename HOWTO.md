@@ -165,9 +165,10 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
   plane's Hobbs total still shows on the poster.
 - **Rotation**: in Settings, tick "Rotate posters automatically"
   and set the minutes per poster — the panel cycles every plane
-  that has flights (visual-logbook-rotate.service). Manual shows
-  and button presses don't fight it; the cycle resumes from
-  whatever is up.
+  that has flights (visual-logbook-rotate.service). Each plane's
+  turn opens with its photo, held for the photo dwell, then its
+  poster — the boot sequence, per plane. Manual shows and button
+  presses don't fight it; the cycle resumes from whatever is up.
 - **Buttons**: A/B = previous/next plane, C = photo, D = check
   FlightAware now. The panel's built-in buttons and any remote
   buttons wired in parallel to GPIO 5 / 6 / 16 / 24 (to ground)
