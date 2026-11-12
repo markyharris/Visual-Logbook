@@ -140,9 +140,9 @@ def main(out_path, data=None):
     total_nm = sum(l["nm"] for l in legs)
     counts = Counter((min(l["dep"], l["arr"]), max(l["dep"], l["arr"]))
                      for l in timed)
-    longest = max(timed, key=lambda l: l["nm"])
-    first = min(l["date"] for l in legs)
-    last = max(l["date"] for l in legs)
+    longest = max(timed, key=lambda l: l["nm"]) if timed else None
+    first = min((l["date"] for l in legs), default=None)
+    last = max((l["date"] for l in legs), default=None)
 
     img = Image.new("RGB", (W, H), WHITE)
     d = ImageDraw.Draw(img)
@@ -164,7 +164,7 @@ def main(out_path, data=None):
     d.line([(W + tw) / 2 + 25, mid_y, W - 60, mid_y], fill=RED, width=2)
     spaced(d, (W / 2, 82),
            f"{data['aircraft'].upper()}  ·  FLIGHT LOG  ·  "
-           f"{last.year}", f_sub, BLACK)
+           f"{last.year if last else ''}", f_sub, BLACK)
 
     # ---- map --------------------------------------------------------
     MX0, MY0, MX1, MY1 = 46, 118, 754, 396
@@ -274,10 +274,13 @@ def main(out_path, data=None):
     sw = d.textlength(stats, font=f_stat)
     d.text(((W - sw) / 2, 420), stats, font=f_stat, fill=BLUE)
     f_note = ImageFont.truetype(SANS, 12)
-    note = (f"{first.strftime('%b %-d').upper()} – "
-            f"{last.strftime('%b %-d, %Y').upper()}   ·   "
-            f"LONGEST LEG: {longest['dep']} → {longest['arr']} · "
-            f"{longest['nm']} NM")
+    if first and longest:
+        note = (f"{first.strftime('%b %-d').upper()} – "
+                f"{last.strftime('%b %-d, %Y').upper()}   ·   "
+                f"LONGEST LEG: {longest['dep']} → {longest['arr']} · "
+                f"{longest['nm']} NM")
+    else:
+        note = "NO FLIGHTS LOGGED YET"
     nw = d.textlength(note, font=f_note)
     d.text(((W - nw) / 2, 446), note, font=f_note, fill=RED)
 

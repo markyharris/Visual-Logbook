@@ -27,6 +27,9 @@ def show(tail=None):
     inky = auto(ask_user=True, verbose=True)
     inky.set_image(Image.open(out))
     inky.show()
+    state = logbook.load_state()
+    state["showing_tail"] = tail
+    logbook.save_state(state)
     print(f"poster for {tail} on the panel")
 
 

@@ -1,0 +1,13 @@
+[Unit]
+Description=Visual Logbook poster rotation (cycle all planes)
+After=local-fs.target
+
+[Service]
+Type=simple
+User=vislog
+WorkingDirectory=/home/vislog/Visual-Logbook
+ExecStart=/usr/bin/python3 /home/vislog/Visual-Logbook/rotate.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -78,3 +78,5 @@ and poster:
   moving the frame to a new Wi-Fi network or owner.
 - `boot_sequence.py` — at power-up: the display plane's photo,
   a dwell (admin setting), then its poster.
+- `rotate.py` — optional auto-rotation: cycle every plane's
+  poster, minutes-per-poster set in the admin.

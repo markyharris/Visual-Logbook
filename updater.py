@@ -20,7 +20,8 @@ import logbook  # noqa: E402
 
 SERVICES = ["visual-logbook-admin.service",
             "visual-logbook-buttons.service",
-            "visual-logbook-boot.service"]
+            "visual-logbook-boot.service",
+            "visual-logbook-rotate.service"]
 
 
 def git(*args):

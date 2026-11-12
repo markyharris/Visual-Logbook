@@ -122,10 +122,12 @@ from a web admin page. Install the services once:
 sudo apt install -y python3-gpiozero
 sudo cp visual-logbook-admin.service visual-logbook-buttons.service \
         visual-logbook-fetch.service visual-logbook-fetch.timer \
-        visual-logbook-boot.service /etc/systemd/system/
+        visual-logbook-boot.service visual-logbook-rotate.service \
+        /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now visual-logbook-admin \
-    visual-logbook-buttons visual-logbook-boot
+    visual-logbook-buttons visual-logbook-boot \
+    visual-logbook-rotate
 sudo systemctl enable --now visual-logbook-fetch.timer
 ```
 
@@ -133,7 +135,7 @@ The updater and the rehome button restart things without a
 password prompt; grant exactly those commands:
 
 ```
-echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admin.service visual-logbook-buttons.service visual-logbook-boot.service, /usr/bin/nmcli connection delete *, /usr/bin/reboot" | sudo tee /etc/sudoers.d/visual-logbook
+echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admin.service visual-logbook-buttons.service visual-logbook-boot.service visual-logbook-rotate.service, /usr/bin/nmcli connection delete *, /usr/bin/reboot" | sudo tee /etc/sudoers.d/visual-logbook
 ```
 
 (adjust the user name if yours differs).
@@ -151,6 +153,11 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
   redraws itself if that plane is on display. Airports not in the
   bundled US dataset appear under "Unknown airports" in the admin;
   give their coordinates once and they're never asked again.
+- **Rotation**: in Settings, tick "Rotate posters automatically"
+  and set the minutes per poster — the panel cycles every plane
+  that has flights (visual-logbook-rotate.service). Manual shows
+  and button presses don't fight it; the cycle resumes from
+  whatever is up.
 - **Buttons**: A/B = previous/next plane, C = photo, D = check
   FlightAware now. The panel's built-in buttons and any remote
   buttons wired in parallel to GPIO 5 / 6 / 16 / 24 (to ground)

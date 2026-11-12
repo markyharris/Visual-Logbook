@@ -133,7 +133,12 @@ def page(msg=""):
                f"FlightAware AeroAPI key <input type=password "
                f"name=fa_api_key size=34 placeholder='{key_set}'> "
                f"Photo dwell (s) <input name=dwell_seconds size=4 "
-               f"value={int(cfg.get('dwell_seconds', 30))}> "
+               f"value={int(cfg.get('dwell_seconds', 30))}><br>"
+               f"<label><input type=checkbox name=rotate value=yes "
+               f"{'checked' if cfg.get('rotate') else ''}> "
+               f"Rotate posters automatically</label> "
+               f"every <input name=rotate_minutes size=3 "
+               f"value={int(cfg.get('rotate_minutes', 10))}> minutes "
                "<button>Save settings</button></form>"
                "<form method=post action=/fetch_now>"
                "<button>Check FlightAware now</button></form>"
@@ -331,6 +336,9 @@ class Handler(BaseHTTPRequestHandler):
                     cfg["fa_api_key"] = f["fa_api_key"].strip()
                 cfg["dwell_seconds"] = max(
                     0, int(f.get("dwell_seconds") or 30))
+                cfg["rotate"] = f.get("rotate") == "yes"
+                cfg["rotate_minutes"] = max(
+                    1, int(f.get("rotate_minutes") or 10))
                 logbook.save_config(cfg)
                 msg = "Settings saved."
             elif path == "/fetch_now":

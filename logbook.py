@@ -57,6 +57,8 @@ def ensure_config():
         "fa_api_key": "",
         "display_tail": tail,
         "dwell_seconds": 30,
+        "rotate": False,
+        "rotate_minutes": 10,
         "planes": [{
             "tail": tail,
             "type": seed.get("aircraft", ""),
