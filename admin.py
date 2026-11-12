@@ -136,7 +136,13 @@ def page(msg=""):
            "<style>body{font-family:sans-serif;margin:16px;"
            "max-width:860px}table{border-collapse:collapse}"
            "td,th{border:1px solid #999;padding:4px 8px}"
-           "input{margin:2px}fieldset{margin:12px 0}"
+           "input{margin:2px}fieldset{margin:12px 0;"
+           "border:1px solid #bbb;border-radius:6px}"
+           ".sec-air{background:#e9f1fd}.sec-edit{background:#e7f6ec}"
+           ".sec-settings{background:#fff6d9}"
+           ".sec-unknown{background:#fdeee2}"
+           ".sec-add{background:#f1eafd}.sec-update{background:#e2f5f7}"
+           ".sec-rehome{background:#fdeaea}"
            ".msg{background:#efe;border:1px solid #9c9;"
            "padding:6px}</style>",
            "<h1><img src=/favicon.jpg alt='' "
@@ -152,7 +158,8 @@ def page(msg=""):
                f"<a href='/export'>Download all flights (CSV)</a></p>")
 
     # ---- planes table ---------------------------------------------
-    out.append("<h2>Aircraft</h2><table><tr><th>Tail</th><th>Type</th>"
+    out.append("<fieldset class=sec-air><legend>Aircraft</legend>"
+               "<table><tr><th>Tail</th><th>Type</th>"
                "<th>Home</th><th>Flights</th><th>Hours</th>"
                "<th>Last flight</th><th>Last FA check</th>"
                "<th>Actions</th></tr>")
@@ -189,10 +196,11 @@ def page(msg=""):
             f"<input type=file name=photo accept='image/*' required> "
             f"<button>Upload photo</button></form>"
             f"</td></tr>")
-    out.append("</table>")
+    out.append("</table></fieldset>")
 
     # ---- add / edit plane ------------------------------------------
-    out.append("<fieldset><legend>Add or edit a plane</legend>"
+    out.append("<fieldset class=sec-edit>"
+               "<legend>Add or edit a plane</legend>"
                "<form method=post action=/save_plane>"
                "Tail <input name=tail size=9 required> "
                "Type <input name=type size=16> "
@@ -211,7 +219,8 @@ def page(msg=""):
         else "not set"
     os_set = "set (leave blank to keep)" if cfg.get(
         "opensky_client_secret") else "not set"
-    out.append("<fieldset><legend>Settings</legend>"
+    out.append("<fieldset class=sec-settings>"
+               "<legend>Settings</legend>"
                "<form method=post action=/save_settings>"
                f"FlightAware AeroAPI key <input type=password "
                f"name=fa_api_key size=34 placeholder='{key_set}'> "
@@ -241,7 +250,8 @@ def page(msg=""):
         _f, unk = logbook.airports_for(data)
         for u in unk:
             unknowns.setdefault(u, []).append(p["tail"])
-    out.append("<fieldset><legend>Unknown airports</legend>")
+    out.append("<fieldset class=sec-unknown>"
+               "<legend>Unknown airports</legend>")
     if unknowns:
         for ident, tails in sorted(unknowns.items()):
             out.append(f"<form method=post action=/add_airport>"
@@ -258,7 +268,8 @@ def page(msg=""):
 
     opts = "".join(f"<option>{esc(p['tail'])}</option>"
                    for p in cfg["planes"])
-    out.append("<fieldset><legend>Add a flight by hand</legend>"
+    out.append("<fieldset class=sec-add>"
+               "<legend>Add a flight by hand</legend>"
                "<form method=post action=/add_leg>"
                f"Plane <select name=tail>{opts}</select> "
                "Date <input name=date type=date required> "
@@ -275,7 +286,7 @@ def page(msg=""):
     lu = state.get("last_update_check") or "never"
     note = state.get("update_note") or ""
     note_html = f" · {esc(note)}" if note else ""
-    out.append("<fieldset><legend>Update</legend>"
+    out.append("<fieldset class=sec-update><legend>Update</legend>"
                f"Last checked: {esc(lu)} · "
                f"Update available: "
                f"<b>{'yes' if state.get('update_available') else 'no'}"
@@ -288,7 +299,8 @@ def page(msg=""):
                f"style=display:inline> <button {WATCH_ONCLICK}>"
                "Update now</button>"
                "</form></fieldset>")
-    out.append("<fieldset><legend>Rehome (Wi-Fi)</legend>"
+    out.append("<fieldset class=sec-rehome>"
+               "<legend>Rehome (Wi-Fi)</legend>"
                "If this frame moves to a new network or owner: "
                "forget the current Wi-Fi and reboot — Comitup will "
                "offer its setup access point for joining the new "
