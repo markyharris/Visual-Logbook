@@ -11,7 +11,8 @@ Two sources, in order:
    OpenSky only serves historical flights to signed-in accounts,
    and its data lands a day behind, so this runs as a gap-filler:
    the last 4 days, flights whose estimated departure AND arrival
-   airports are known. Times are first-seen/last-seen on ADS-B,
+   airports are known (queried as complete UTC days, one day
+   per request). Times are first-seen/last-seen on ADS-B,
    so hours are approximate. A flight either source already
    logged (same route, times within an hour) is never added
    twice — FlightAware's version wins because it runs first.
@@ -28,6 +29,7 @@ import json
 import os
 import subprocess
 import sys
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -42,8 +44,7 @@ WINDOW_DAYS = 14
 OS_API = "https://opensky-network.org/api/flights/aircraft"
 OS_TOKEN_URL = ("https://auth.opensky-network.org/auth/realms/"
                 "opensky-network/protocol/openid-connect/token")
-OS_DAYS = 4            # OpenSky data is a day behind; 4 is plenty
-OS_CHUNK_SECONDS = 2 * 86400   # per-request window limit
+OS_DAYS = 4            # complete UTC days back from yesterday
 
 
 # ------------------------------------------------------------------
@@ -163,6 +164,17 @@ def tail_to_icao24(tail):
     return format(icao + _enc_suffix(tail[4:6]), "06x")
 
 
+def _http_detail(stage, e):
+    """An HTTPError with its response body attached — OpenSky's
+    body says WHY (bad client, bad interval), which the bare
+    status line hides."""
+    try:
+        body = e.read().decode("utf-8", "replace").strip()
+    except Exception:
+        body = ""
+    return RuntimeError(f"{stage} HTTP {e.code}: {body[:140]}")
+
+
 def os_token(cfg, cache):
     """OAuth2 client-credentials token for OpenSky, cached in
     the `cache` dict across planes; a failure is cached too so
@@ -180,6 +192,9 @@ def os_token(cfg, cache):
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
             cache["token"] = json.load(r)["access_token"]
+    except urllib.error.HTTPError as e:
+        cache["error"] = _http_detail("token", e)
+        raise cache["error"]
     except Exception as e:
         cache["error"] = e
         raise
@@ -189,8 +204,13 @@ def os_token(cfg, cache):
 def os_get(url, token):
     req = urllib.request.Request(
         url, headers={"Authorization": f"Bearer {token}"})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.load(r)
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return []          # OpenSky's "no flights in window"
+        raise _http_detail("flights", e)
 
 
 def parse_opensky(payload, icao24):
@@ -255,13 +275,19 @@ def fetch_opensky(data, plane, cfg, cache, now):
         raise ValueError(f"no ICAO hex for {plane['tail']}")
     token = os_token(cfg, cache)
     known = {l.get("fa_id") for l in data["legs"]}
-    end = int(now.timestamp())
     added = 0
-    chunk_end = end
-    while chunk_end > end - OS_DAYS * 86400:
-        begin = chunk_end - OS_CHUNK_SECONDS
+    # Complete UTC days only, in 1-day requests: OpenSky's batch
+    # holds nothing for today yet, and its stated cap is a 2-day
+    # interval — exactly-2-day requests drew HTTP 400 in the
+    # field (Nov 12, 2026), so stay well inside it.
+    today0 = int(datetime.datetime(
+        now.year, now.month, now.day,
+        tzinfo=datetime.timezone.utc).timestamp())
+    for back in range(OS_DAYS):
+        end = today0 - back * 86400
+        begin = end - 86400
         q = urllib.parse.urlencode(
-            {"icao24": icao24, "begin": begin, "end": chunk_end})
+            {"icao24": icao24, "begin": begin, "end": end})
         for fl in parse_opensky(os_get(f"{OS_API}?{q}", token),
                                 icao24):
             if fl["fa_id"] in known:
@@ -277,7 +303,6 @@ def fetch_opensky(data, plane, cfg, cache, now):
                                   + fl["hours"], 1)
             known.add(fl["fa_id"])
             added += 1
-        chunk_end = begin
     return added
 
 
