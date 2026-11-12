@@ -136,12 +136,20 @@ def page(msg=""):
     # ---- settings ----------------------------------------------------
     key_set = "set (leave blank to keep)" if cfg.get("fa_api_key") \
         else "not set"
+    os_set = "set (leave blank to keep)" if cfg.get(
+        "opensky_client_secret") else "not set"
     out.append("<fieldset><legend>Settings</legend>"
                "<form method=post action=/save_settings>"
                f"FlightAware AeroAPI key <input type=password "
                f"name=fa_api_key size=34 placeholder='{key_set}'> "
                f"Photo dwell (s) <input name=dwell_seconds size=4 "
                f"value={int(cfg.get('dwell_seconds', 30))}><br>"
+               f"OpenSky client ID <input name=opensky_client_id "
+               f"size=20 value='{esc(cfg.get('opensky_client_id', ''))}'> "
+               f"secret <input type=password "
+               f"name=opensky_client_secret size=20 "
+               f"placeholder='{os_set}'> "
+               f"<small>(free backup source)</small><br>"
                f"<label><input type=checkbox name=rotate value=yes "
                f"{'checked' if cfg.get('rotate') else ''}> "
                f"Rotate posters automatically</label> "
@@ -149,7 +157,7 @@ def page(msg=""):
                f"value={int(cfg.get('rotate_minutes', 10))}> minutes "
                "<button>Save settings</button></form>"
                "<form method=post action=/fetch_now>"
-               "<button>Check FlightAware now</button></form>"
+               "<button>Check flights now</button></form>"
                "</fieldset>")
 
     # ---- unknown airports + manual leg ------------------------------
@@ -234,7 +242,10 @@ def flights_csv(cfg, tails):
                 leg.get("off", ""), leg.get("on", ""),
                 "manual" if str(leg.get("fa_id", "")).startswith(
                     "manual") else (
-                    "FlightAware" if leg.get("fa_id") else "log")])
+                    "OpenSky" if str(leg.get("fa_id", "")).startswith(
+                        "opensky-") else (
+                        "FlightAware" if leg.get("fa_id")
+                        else "log"))])
     return buf.getvalue()
 
 
@@ -433,6 +444,11 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/save_settings":
                 if f.get("fa_api_key"):
                     cfg["fa_api_key"] = f["fa_api_key"].strip()
+                cfg["opensky_client_id"] = (
+                    f.get("opensky_client_id") or "").strip()
+                if f.get("opensky_client_secret"):
+                    cfg["opensky_client_secret"] = f[
+                        "opensky_client_secret"].strip()
                 cfg["dwell_seconds"] = max(
                     0, int(f.get("dwell_seconds") or 30))
                 cfg["rotate"] = f.get("rotate") == "yes"
@@ -442,7 +458,7 @@ class Handler(BaseHTTPRequestHandler):
                 msg = "Settings saved."
             elif path == "/fetch_now":
                 run_bg("fetch_flights.py")
-                msg = "FlightAware check started."
+                msg = "Flight check started (FlightAware + OpenSky)."
             elif path == "/add_airport":
                 logbook.add_custom_airport(f["ident"], f["lat"],
                                            f["lon"], f.get("name", ""))

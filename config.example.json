@@ -2,6 +2,8 @@
  "display_tail": "N26MR",
  "dwell_seconds": 30,
  "fa_api_key": "",
+ "opensky_client_id": "",
+ "opensky_client_secret": "",
  "planes": [
   {
    "home": "KFLG",

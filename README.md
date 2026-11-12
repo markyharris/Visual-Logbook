@@ -65,11 +65,14 @@ and poster:
   live in `legs_<TAIL>.json` beside a Pi-local `config.json`
   (neither is committed — the repo ships `legs.json` as plane #1's
   seed and `config.example.json` as the shape).
-- `fetch_flights.py` — a FlightAware AeroAPI poller (timer, every
-  6 h) that appends completed flights, computes miles from a
-  bundled US airport dataset (`us_airports.json`, from
-  OurAirports), adds airborne hours, and redraws the displayed
-  plane's poster when it gains a flight.
+- `fetch_flights.py` — a flight poller (timer, every 6 h) with
+  two sources: FlightAware AeroAPI (primary) and the OpenSky
+  Network (free backup — fills recent gaps a day behind, and a
+  flight either source already logged is never added twice). It
+  appends completed flights, computes miles from a bundled US
+  airport dataset (`us_airports.json`, from OurAirports), adds
+  airborne hours, and redraws the displayed plane's poster when
+  it gains a flight.
 - `buttons.py` — the panel buttons (A/B previous/next plane,
   C photo, D fetch now); remote buttons wired in parallel to the
   same GPIO pins work identically.

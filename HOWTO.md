@@ -153,6 +153,20 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
   redraws itself if that plane is on display. Airports not in the
   bundled US dataset appear under "Unknown airports" in the admin;
   give their coordinates once and they're never asked again.
+- **OpenSky (free backup)**: create a free account at
+  opensky-network.org, then create an API client in your account
+  settings — that gives a client ID and a client secret. Paste
+  both into Settings, under the FlightAware key. With those set,
+  every fetch also asks OpenSky for the last 4 days: it's
+  community ADS-B, a day behind FlightAware, and it only logs a
+  flight when it can estimate both airports — low VFR hops with
+  thin receiver coverage are often missed, and the times are
+  first-seen/last-seen rather than true off/on, so the hours are
+  approximate (the CSV Source column says "OpenSky" for these).
+  A flight FlightAware already logged is never duplicated. The
+  ICAO hex OpenSky keys on is computed from the N-number
+  automatically; a non-US plane can set `"icao24": "…"` on its
+  entry in config.json instead.
 - **Flight data out**: every plane's row has a **Flights** link —
   its full history with dates, routes, miles and (for fetched
   flights) off/on times and per-flight hours — plus a CSV
@@ -170,7 +184,7 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
   poster — the boot sequence, per plane. Manual shows and button
   presses don't fight it; the cycle resumes from whatever is up.
 - **Buttons**: A/B = previous/next plane, C = photo, D = check
-  FlightAware now. The panel's built-in buttons and any remote
+  flights now. The panel's built-in buttons and any remote
   buttons wired in parallel to GPIO 5 / 6 / 16 / 24 (to ground)
   are the same thing to the software.
 - **Updates**: the admin's Update section checks GitHub daily-use
