@@ -10,8 +10,9 @@ admin pages — no login, don't expose it beyond the home network.
 Run:  python3 admin.py            (visual-logbook-admin.service)
 """
 import html
-import math
+import io
 import os
+import re
 import subprocess
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -32,6 +33,13 @@ def run_bg(*args):
     subprocess.Popen([sys.executable] + list(args), cwd=HERE,
                      stdout=subprocess.DEVNULL,
                      stderr=subprocess.DEVNULL)
+
+
+def has_photo(cfg, tail):
+    names = [f"plane_{tail}.jpg"]
+    if cfg["planes"] and cfg["planes"][0]["tail"] == tail:
+        names.append("plane.jpg")
+    return any(os.path.exists(os.path.join(HERE, n)) for n in names)
 
 
 def plane_stats(cfg, tail):
@@ -92,7 +100,13 @@ def page(msg=""):
             f"value='{esc(tail)}'><button>Set display</button></form> "
             f"<form method=post action=/delete_plane "
             f"style=display:inline><input type=hidden name=tail "
-            f"value='{esc(tail)}'><button>Delete</button></form>"
+            f"value='{esc(tail)}'><button>Delete</button></form><br>"
+            f"{'Photo ✓' if has_photo(cfg, tail) else 'No photo'} "
+            f"<form method=post action=/upload_photo "
+            f"enctype=multipart/form-data style=display:inline>"
+            f"<input type=hidden name=tail value='{esc(tail)}'>"
+            f"<input type=file name=photo accept='image/*' required> "
+            f"<button>Upload photo</button></form>"
             f"</td></tr>")
     out.append("</table>")
 
@@ -201,16 +215,77 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b)
 
+    def _multipart(self):
+        """{field: (filename, bytes or text)} from a multipart body."""
+        ctype = self.headers.get("Content-Type", "")
+        m = re.search(r"boundary=([^;]+)", ctype)
+        if not m:
+            return {}
+        boundary = ("--" + m.group(1).strip().strip('"')).encode()
+        n = int(self.headers.get("Content-Length", 0))
+        if n > 16 * 1024 * 1024:
+            raise ValueError("upload too large (16 MB max)")
+        body = self.rfile.read(n)
+        fields = {}
+        for part in body.split(boundary):
+            if b"\r\n\r\n" not in part:
+                continue
+            head, content = part.split(b"\r\n\r\n", 1)
+            if content.endswith(b"\r\n"):
+                content = content[:-2]
+            dm = re.search(rb'name="([^"]+)"', head)
+            if not dm:
+                continue
+            name = dm.group(1).decode()
+            fm = re.search(rb'filename="([^"]*)"', head)
+            if fm:
+                fields[name] = (fm.group(1).decode(), content)
+            else:
+                fields[name] = (None, content.decode(errors="replace"))
+        return fields
+
     def _form(self):
         n = int(self.headers.get("Content-Length", 0))
         raw = self.rfile.read(n).decode() if n else ""
         return {k: v[0] for k, v in parse_qs(raw).items()}
+
+    def _upload_photo(self):
+        cfg = logbook.load_config()
+        try:
+            fields = self._multipart()
+            tail = fields.get("tail", (None, ""))[1].strip().upper()
+            filename, content = fields.get("photo", (None, b""))
+            if logbook.plane_cfg(cfg, tail) is None:
+                raise ValueError("unknown plane")
+            if not filename or not content:
+                raise ValueError("no file chosen")
+            from PIL import Image
+            img = Image.open(io.BytesIO(content))
+            img.convert("RGB").save(
+                os.path.join(HERE, f"plane_{tail}.jpg"), quality=92)
+            stale = os.path.join(HERE, f"boot_{tail}.png")
+            if os.path.exists(stale):
+                os.remove(stale)
+            if cfg["planes"] and cfg["planes"][0]["tail"] == tail:
+                old = os.path.join(HERE, "boot.png")
+                if os.path.exists(old):
+                    os.remove(old)
+            run_bg("make_boot.py", f"plane_{tail}.jpg",
+                   f"boot_{tail}.png", "--tail", tail)
+            msg = (f"Photo saved for {tail} — its boot image is "
+                   f"rebuilding; the Photo button shows it.")
+        except Exception as e:
+            msg = f"Upload error: {e}"
+        self._send(page(msg))
 
     def do_GET(self):
         self._send(page())
 
     def do_POST(self):
         path = urlparse(self.path).path
+        if path == "/upload_photo":
+            self._upload_photo()
+            return
         f = self._form()
         cfg = logbook.load_config()
         msg = ""

@@ -140,7 +140,10 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
 
 - **Admin page**: http://<pi>:8080 — add/edit planes, choose the
   one on display, show a poster or photo now, add flights by hand,
-  fix unknown airports, set the photo dwell.
+  fix unknown airports, set the photo dwell. Each plane's photo is
+  uploaded right in its table row (any image; it's stored as
+  `plane_<TAIL>.jpg` and its boot image rebuilds automatically) —
+  or drop the file into the project folder yourself.
 - **FlightAware**: get an AeroAPI key (flightaware.com → AeroAPI),
   paste it into Settings. The fetch timer then checks every 6
   hours: completed flights are appended with great-circle miles,

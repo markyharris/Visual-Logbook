@@ -26,9 +26,12 @@ def show(tail=None):
     import logbook
     cfg = logbook.load_config()
     tail = tail or cfg["display_tail"]
-    boot = _first(f"boot_{tail}.png", "boot.png")
+    first = cfg["planes"][0]["tail"] if cfg["planes"] else None
+    legacy = ["boot.png"] if tail == first else []
+    boot = _first(f"boot_{tail}.png", *legacy)
     if boot is None:
-        photo = _first(f"plane_{tail}.jpg", "plane.jpg")
+        legacy = ["plane.jpg"] if tail == first else []
+        photo = _first(f"plane_{tail}.jpg", *legacy)
         if photo is None:
             print(f"no photo for {tail}; skipping boot image")
             return
