@@ -4,3 +4,10 @@ __pycache__/
 boot.png
 plane.jpg
 poster.png
+config.json
+state.json
+custom_airports.json
+legs_*.json
+boot_*.png
+plane_*.jpg
+poster_*.png

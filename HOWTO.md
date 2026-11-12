@@ -53,6 +53,9 @@ cd Visual-Logbook
 python3 show_poster.py
 ```
 
+(On a fresh clone this also creates `config.json` and the first
+plane's live log from the seed `legs.json` — see §7.)
+
 The poster renders, then the panel refreshes — Spectra 6 takes
 about 30 seconds and cycles through its colours while it works.
 That is normal. The finished poster then stays on the panel even
@@ -80,25 +83,20 @@ python3 make_poster.py poster.png
 
 ## 5. The boot picture
 
-Drop a photo of the aeroplane in the project folder as `plane.jpg`,
-then:
+Drop a photo of the aeroplane in the project folder as `plane.jpg`
+(per plane: `plane_<TAIL>.jpg`), then:
 
 ```
 python3 show_boot.py
 ```
 
-builds `boot.png` (cropped to 5:3, caption band with the tail number
-from `legs.json`, converted to the panel's six colours) and puts it
-on the panel. To have it greet you at every power-up:
-
-```
-sudo cp visual-logbook-boot.service /etc/systemd/system/
-sudo systemctl enable visual-logbook-boot.service
-```
-
-(edit the `User=` and paths in the unit first if your user or clone
-folder differs). E-paper holds its last image, so the photo is also
-simply what the frame shows whenever it's off.
+builds the boot image (cropped to 5:3, caption band with the tail
+number, converted to the panel's six colours) and puts it on the
+panel. To have it greet you at every power-up, install the boot
+service (§7): it shows the display plane's photo, waits the dwell
+time from the admin settings, then settles on the poster. E-paper
+holds its last image, so the photo is also simply what the frame
+shows whenever it's off.
 
 ## 6. Keeping it current (manual, for now)
 
@@ -114,3 +112,51 @@ Automatic FlightAware updates are on the roadmap.
 - State outlines are dashed, chart-style, and clipped to the map
   area, which is fitted to your airports — fly somewhere new and the
   map politely makes room.
+
+## 7. The multi-plane system (admin, FlightAware, buttons)
+
+Up to 6 planes, each with its own log, photo and poster, managed
+from a web admin page. Install the services once:
+
+```
+sudo apt install -y python3-gpiozero
+sudo cp visual-logbook-admin.service visual-logbook-buttons.service \
+        visual-logbook-fetch.service visual-logbook-fetch.timer \
+        visual-logbook-boot.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now visual-logbook-admin \
+    visual-logbook-buttons visual-logbook-boot
+sudo systemctl enable --now visual-logbook-fetch.timer
+```
+
+The updater and the rehome button restart things without a
+password prompt; grant exactly those commands:
+
+```
+echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admin.service visual-logbook-buttons.service visual-logbook-boot.service, /usr/bin/nmcli connection delete *, /usr/bin/reboot" | sudo tee /etc/sudoers.d/visual-logbook
+```
+
+(adjust the user name if yours differs).
+
+- **Admin page**: http://<pi>:8080 — add/edit planes, choose the
+  one on display, show a poster or photo now, add flights by hand,
+  fix unknown airports, set the photo dwell.
+- **FlightAware**: get an AeroAPI key (flightaware.com → AeroAPI),
+  paste it into Settings. The fetch timer then checks every 6
+  hours: completed flights are appended with great-circle miles,
+  airborne hours are added to the plane's total, and the poster
+  redraws itself if that plane is on display. Airports not in the
+  bundled US dataset appear under "Unknown airports" in the admin;
+  give their coordinates once and they're never asked again.
+- **Buttons**: A/B = previous/next plane, C = photo, D = check
+  FlightAware now. The panel's built-in buttons and any remote
+  buttons wired in parallel to GPIO 5 / 6 / 16 / 24 (to ground)
+  are the same thing to the software.
+- **Updates**: the admin's Update section checks GitHub daily-use
+  style — Check now compares the clone against the repo; Update
+  now pulls and restarts. `config.json`, the per-plane logs,
+  photos and state are gitignored, so updates never touch them.
+- **Rehome**: install Comitup (the fleet's standard Pi rehoming —
+  see livesectional-lite's WIFI-PROVISIONING notes), then the
+  admin's Rehome button can forget the current Wi-Fi and reboot
+  into Comitup's phone-friendly setup access point.

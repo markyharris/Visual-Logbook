@@ -54,11 +54,27 @@ re-run `show_poster.py`. New airport? Add its coordinates to
 `airports.json` (any airport directory gives lat/lon). The map
 re-scales itself to fit.
 
-## Roadmap
+## The multi-plane system
 
-- Automatic updates: watch FlightAware for the tail number and add
-  new flights by itself.
-- The panel's four side buttons page between posters (a second
-  aircraft, a statistics page).
-- Wi-Fi rehoming and update checks, matching the rest of the fleet's
-  house rules.
+Up to six aircraft share the frame, each with its own log, photo
+and poster:
+
+- `admin.py` — a web admin page (port 8080) to manage the planes,
+  choose the one on display, drive the panel, and hold the
+  settings. `logbook.py` is the shared data layer; per-plane logs
+  live in `legs_<TAIL>.json` beside a Pi-local `config.json`
+  (neither is committed — the repo ships `legs.json` as plane #1's
+  seed and `config.example.json` as the shape).
+- `fetch_flights.py` — a FlightAware AeroAPI poller (timer, every
+  6 h) that appends completed flights, computes miles from a
+  bundled US airport dataset (`us_airports.json`, from
+  OurAirports), adds airborne hours, and redraws the displayed
+  plane's poster when it gains a flight.
+- `buttons.py` — the panel buttons (A/B previous/next plane,
+  C photo, D fetch now); remote buttons wired in parallel to the
+  same GPIO pins work identically.
+- `updater.py` — git-based update check ("Update available" flag)
+  and Update now, in the admin. `rehome.py` + Comitup handle
+  moving the frame to a new Wi-Fi network or owner.
+- `boot_sequence.py` — at power-up: the display plane's photo,
+  a dwell (admin setting), then its poster.

@@ -1,0 +1,9 @@
+[Unit]
+Description=Visual Logbook FlightAware fetch
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=vislog
+WorkingDirectory=/home/vislog/Visual-Logbook
+ExecStart=/usr/bin/python3 /home/vislog/Visual-Logbook/fetch_flights.py

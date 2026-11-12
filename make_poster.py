@@ -56,23 +56,8 @@ SERIF = _font("serif")
 SANS_B = _font("sans_b")
 SANS = _font("sans")
 
-HOME = "KFLG"
 
 
-def load_data():
-    """Flight data from legs.json (kept beside this file).
-
-    Format: {"tail": ..., "aircraft": ..., "hours": float,
-             "legs": [{"date": "YYYY-MM-DD", "dep": ..., "arr": ...,
-                       "nm": int}]}
-    New flights are appended to legs.json; the poster re-renders
-    from it, so the panel never needs the original spreadsheet.
-    """
-    import datetime
-    data = json.load(open(os.path.join(HERE, "legs.json")))
-    for leg in data["legs"]:
-        leg["date"] = datetime.date.fromisoformat(leg["date"])
-    return data
 
 
 def arc_points(p1, p2, n=28):
@@ -138,10 +123,19 @@ def spaced(draw, xy, text, font, fill, spacing=3):
     return total
 
 
-def main(out_path):
-    airports = json.load(open(os.path.join(HERE, "airports.json")))
-    data = load_data()
+def main(out_path, data=None):
+    if data is None:
+        import logbook
+        cfg = logbook.load_config()
+        data = logbook.load_plane(cfg["display_tail"], cfg)
+    import datetime
+    import logbook
+    airports, _unknown = logbook.airports_for(data)
+    home = data.get("home", "KFLG")
     legs = data["legs"]
+    for leg in legs:
+        if isinstance(leg["date"], str):
+            leg["date"] = datetime.date.fromisoformat(leg["date"])
     timed = [l for l in legs if l["dep"] != l["arr"]]
     total_nm = sum(l["nm"] for l in legs)
     counts = Counter((min(l["dep"], l["arr"]), max(l["dep"], l["arr"]))
@@ -224,11 +218,15 @@ def main(out_path):
     }
     for abbr, (la, lo) in state_labels.items():
         x, y = xy(la, lo)
+        if not (MX0 + 8 <= x <= MX1 - 8 and MY0 + 8 <= y <= MY1 - 8):
+            continue
         w = d.textlength(abbr, font=f_state)
         d.text((x - w / 2, y - 6), abbr, font=f_state, fill=BLUE)
 
     # legs as great-circle arcs, width grows with frequency
     for (a, b), n in sorted(counts.items()):
+        if a not in airports or b not in airports:
+            continue
         pts = [xy(lat, lon) for lat, lon in
                arc_points((airports[a]["lat"], airports[a]["lon"]),
                           (airports[b]["lat"], airports[b]["lon"]))]
@@ -253,7 +251,7 @@ def main(out_path):
             "KBGD": (-1, -17), "KOJA": (1, 9)}
     for code, a in airports.items():
         x, y = xy(a["lat"], a["lon"])
-        if code == HOME:
+        if code == home:
             d.ellipse([x - 8, y - 8, x + 8, y + 8], outline=RED, width=3)
             d.ellipse([x - 3, y - 3, x + 3, y + 3], fill=RED)
         else:
@@ -262,11 +260,11 @@ def main(out_path):
                       width=1)
             d.ellipse([x - 2.5, y - 2.5, x + 2.5, y + 2.5], fill=BLACK)
         s, dy = side.get(code, (1, -6))
-        label = code if code != HOME else "KFLG · HOME"
+        label = code if code != home else f"{home} · HOME"
         lw = d.textlength(label, font=f_lab)
         lx = x + 9 if s == 1 else x - 9 - lw
         d.text((lx, y + dy), label, font=f_lab,
-               fill=RED if code == HOME else BLACK)
+               fill=RED if code == home else BLACK)
 
     # ---- footer stats ----------------------------------------------
     d.line([60, 412, W - 60, 412], fill=BLACK, width=1)

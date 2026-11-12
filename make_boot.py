@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
-"""Build the boot image: the aeroplane's photo, Spectra-style.
+"""Build a plane's boot image: its photo, Spectra-style.
 
-Usage:  python3 make_boot.py [photo] [out.png]
+Usage:  python3 make_boot.py [photo] [out.png] [--tail N26MR]
 
-Defaults: reads plane.jpg, writes boot.png. The photo is cropped to
-the panel's 5:3, given a slim black caption band (tail number from
-legs.json, aircraft type, home town), then converted to the Inky
-Impression's six-colour Spectra palette with Floyd-Steinberg
-dithering, so the PNG is exactly what the panel will show.
+The photo is cropped to the panel's 5:3, given a slim black caption
+band (tail number, aircraft type, home town from config.json), then
+converted to the Inky Impression's six-colour Spectra palette with
+Floyd-Steinberg dithering, so the PNG is what the panel will show.
 """
-import json
 import os
 import sys
 
@@ -18,13 +16,11 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFont
 HERE = os.path.dirname(os.path.abspath(__file__))
 W, H = 800, 480
 BAND = 54
-HOME_LABEL = "FLAGSTAFF, ARIZONA"
+
 _FONT_DIRS = ("/usr/share/fonts/truetype/dejavu",
               "/usr/share/fonts/truetype/liberation")
 _FONT_FILES = {
     "serif_b": ("DejaVuSerif-Bold.ttf", "LiberationSerif-Bold.ttf"),
-    "serif": ("DejaVuSerif.ttf", "LiberationSerif-Regular.ttf"),
-    "sans_b": ("DejaVuSans-Bold.ttf", "LiberationSans-Bold.ttf"),
     "sans": ("DejaVuSans.ttf", "LiberationSans-Regular.ttf"),
 }
 
@@ -64,8 +60,11 @@ def to_spectra(img, saturation=1.3, contrast=1.08):
                         dither=Image.FLOYDSTEINBERG).convert("RGB")
 
 
-def main(photo, out):
-    data = json.load(open(os.path.join(HERE, "legs.json")))
+def main(photo, out, data=None):
+    if data is None:
+        import logbook
+        cfg = logbook.load_config()
+        data = logbook.load_plane(cfg["display_tail"], cfg)
     src = Image.open(photo)
     w, h = src.size
     cw = int(h * (W / H))
@@ -78,17 +77,28 @@ def main(photo, out):
     f2 = ImageFont.truetype(SANS, 11)
     d.text((36, H - BAND + 13), data["tail"], font=f1,
            fill=(255, 255, 255))
-    sub = f"{data['aircraft'].upper()}  ·  {HOME_LABEL}"
-    d.text((W - 36 - d.textlength(sub, font=f2), H - BAND + 21),
-           sub, font=f2, fill=(255, 255, 255))
+    home = (data.get("home_label") or "").upper()
+    sub = data.get("aircraft", "").upper()
+    if home:
+        sub = f"{sub}  ·  {home}" if sub else home
+    if sub:
+        d.text((W - 36 - d.textlength(sub, font=f2), H - BAND + 21),
+               sub, font=f2, fill=(255, 255, 255))
 
     to_spectra(img).save(out)
     print("wrote", out)
 
 
 if __name__ == "__main__":
-    photo = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-        HERE, "plane.jpg")
-    out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(
-        HERE, "boot.png")
-    main(photo, out)
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    tail = None
+    if "--tail" in sys.argv:
+        tail = sys.argv[sys.argv.index("--tail") + 1]
+    data = None
+    if tail:
+        import logbook
+        cfg = logbook.load_config()
+        data = logbook.load_plane(tail, cfg)
+    photo = args[0] if args else os.path.join(HERE, "plane.jpg")
+    out = args[1] if len(args) > 1 else os.path.join(HERE, "boot.png")
+    main(photo, out, data)

@@ -1,0 +1,13 @@
+[Unit]
+Description=Visual Logbook admin page (port 8080)
+After=network.target
+
+[Service]
+Type=simple
+User=vislog
+WorkingDirectory=/home/vislog/Visual-Logbook
+ExecStart=/usr/bin/python3 /home/vislog/Visual-Logbook/admin.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

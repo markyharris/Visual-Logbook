@@ -1,0 +1,13 @@
+[Unit]
+Description=Visual Logbook panel buttons (A/B planes, C photo, D fetch)
+After=local-fs.target
+
+[Service]
+Type=simple
+User=vislog
+WorkingDirectory=/home/vislog/Visual-Logbook
+ExecStart=/usr/bin/python3 /home/vislog/Visual-Logbook/buttons.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
