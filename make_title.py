@@ -4,10 +4,12 @@ when the plane has no photo.
 
 Usage:  python3 make_title.py [out.png] [--tail N35MH]
 
-A flat vintage-poster card in the Spectra palette — tail number
-large in blue serif, aircraft type and home base under a red rule —
-rendered with the same fonts and palette conversion as the boot
-photo (make_boot), so the two intro pages feel like a set.
+A flat vintage-poster card using the panel's full Spectra
+palette — tail number large in blue serif, aircraft type and home
+base under a red rule, home line in green, and a yellow band in
+the triple frame — rendered with the same fonts and palette
+conversion as the boot photo (make_boot), so the two intro pages
+feel like a set.
 """
 import os
 import sys
@@ -21,6 +23,8 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 200)
 RED = (210, 0, 0)
+GREEN = (0, 160, 0)
+YELLOW = (240, 200, 0)
 
 
 def _fit(draw, text, path, size, max_w):
@@ -43,9 +47,11 @@ def main(out, data=None):
     img = Image.new("RGB", (W, H), WHITE)
     d = ImageDraw.Draw(img)
 
-    # double frame, poster style
-    d.rectangle([18, 18, W - 18, H - 18], outline=BLACK, width=3)
-    d.rectangle([28, 28, W - 28, H - 28], outline=RED, width=2)
+    # triple frame, poster style: black edge, yellow band, red line
+    d.rectangle([16, 16, W - 16, H - 16], outline=BLACK, width=3)
+    d.rectangle([24, 24, W - 24, H - 24], fill=YELLOW)
+    d.rectangle([34, 34, W - 34, H - 34], fill=WHITE)
+    d.rectangle([34, 34, W - 34, H - 34], outline=RED, width=2)
 
     f_head = ImageFont.truetype(SANS, 19)
     d.text((W // 2, 84), "V I S U A L   L O G B O O K", font=f_head,
@@ -70,7 +76,7 @@ def main(out, data=None):
     sub = f"{home}  ·  {label}" if home and label else home or label
     if sub:
         f_sub = _fit(d, sub, SANS, 20, 640)
-        d.text((W // 2, y), sub, font=f_sub, fill=BLACK, anchor="mm")
+        d.text((W // 2, y), sub, font=f_sub, fill=GREEN, anchor="mm")
 
     legs = data.get("legs") or []
     hours = data.get("hours") or 0
