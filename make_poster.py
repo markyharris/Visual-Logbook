@@ -147,9 +147,12 @@ def main(out_path, data=None):
     img = Image.new("RGB", (W, H), WHITE)
     d = ImageDraw.Draw(img)
 
-    # ---- frame -----------------------------------------------------
+    # ---- frame: black edge, yellow pinstripe, red hairline --------
+    # (same triple-frame scheme as the title page, make_title.py)
     d.rectangle([8, 8, W - 9, H - 9], outline=BLACK, width=3)
-    d.rectangle([15, 15, W - 16, H - 16], outline=BLACK, width=1)
+    d.rectangle([11, 11, W - 12, H - 12], fill=YELLOW)
+    d.rectangle([15, 15, W - 16, H - 16], fill=WHITE)
+    d.rectangle([15, 15, W - 16, H - 16], outline=RED, width=1)
 
     # ---- title block ----------------------------------------------
     f_title = ImageFont.truetype(SERIF_B, 46)
@@ -203,7 +206,7 @@ def main(out_path, data=None):
                     max(lats_r) < lat0 or min(lats_r) > lat1):
                 continue
             pts = [xy(p[1], p[0]) for p in ring]
-            dashed_line(d, pts, BLACK)
+            dashed_line(d, pts, GREEN)
 
     # state abbreviations, hand-placed in open country
     f_state = ImageFont.truetype(SANS_B, 11)
@@ -233,8 +236,9 @@ def main(out_path, data=None):
         wdt = 2 if n == 1 else (3 if n == 2 else 4)
         d.line(pts, fill=RED, width=wdt, joint="curve")
 
-    # compass rose, top-right of the map area
+    # compass rose, top-right of the map area, on a yellow disc
     cx, cy, r = MX1 - 30, MY0 + 30, 17
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=YELLOW)
     d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=BLACK, width=1)
     d.polygon([(cx, cy - r + 3), (cx - 5, cy + 4), (cx + 5, cy + 4)],
               fill=RED)
