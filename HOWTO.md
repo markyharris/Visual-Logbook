@@ -146,6 +146,48 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
   uploaded right in its table row (any image; it's stored as
   `plane_<TAIL>.jpg` and its boot image rebuilds automatically) —
   or drop the file into the project folder yourself.
+- **Admin page controls** — what each one does:
+  - *Poster* (plane row): render that plane's poster fresh and
+    put it on the panel now (a full refresh takes ~30 s). The
+    panel is e-paper — it holds the last image shown until
+    something renders a new one, so after a code update a poster
+    only picks up the new look when it's next rendered.
+  - *Photo* (plane row): put that plane's photo on the panel —
+    or its generated title page (tail, type, home base) if the
+    plane has no photo.
+  - *Flights* (plane row): that plane's full flight log as a
+    table (date, from, to, NM, per-flight time, off/on in UTC)
+    with a Download CSV link. Off/on and times are filled for
+    fetched flights (FlightAware / OpenSky); spreadsheet-era
+    flights show date, route and NM only.
+  - *Set display* (plane row): make that plane the "home" plane
+    (the ★ in the table). The display plane is the one shown at
+    power-up, and the one whose poster redraws itself when a
+    fetch adds a flight to it. It does not change what's on the
+    panel right now — use Poster/Photo for that.
+  - *Delete* (plane row): remove the plane from the list; its
+    log file stays on disk.
+  - *Upload photo* (plane row): store a new `plane_<TAIL>.jpg`;
+    its panel photo page rebuilds from it automatically.
+  - *Download all flights (CSV)* (page header): every plane's
+    log in one CSV, with a Source column (FlightAware, OpenSky,
+    manual or log).
+  - *Settings*: the AeroAPI key and the OpenSky client ID/secret
+    (password fields — blank keeps what's stored), the photo
+    dwell in seconds, and the rotation on/off + minutes per
+    poster. *Check flights now* runs both fetchers in the
+    background; with OpenSky in the loop a run takes minutes,
+    not seconds (it answers slowly, four day-requests per
+    plane), and the per-plane "Last FA check" note only updates
+    when the whole run finishes. The note names each source's
+    result, e.g. "FlightAware +1; OpenSky no new".
+  - *Add or edit a plane*: tail, type, home airport + label,
+    and a starting hours figure for a plane with no log yet.
+  - *Unknown airports*: an airport the dataset can't resolve —
+    give its lat/lon and name once and it's never asked again.
+  - *Add a flight by hand*: date, from, to, optional NM (blank
+    = great-circle computed) and hours; marked "manual" in the
+    CSV Source column.
 - **FlightAware**: get an AeroAPI key (flightaware.com → AeroAPI),
   paste it into Settings. The fetch timer then checks every 6
   hours: completed flights are appended with great-circle miles,
