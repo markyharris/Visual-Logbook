@@ -219,11 +219,13 @@ def page(msg=""):
 
     # ---- update + rehome ---------------------------------------------
     lu = state.get("last_update_check") or "never"
+    note = state.get("update_note") or ""
+    note_html = f" · {esc(note)}" if note else ""
     out.append("<fieldset><legend>Update</legend>"
                f"Last checked: {esc(lu)} · "
                f"Update available: "
                f"<b>{'yes' if state.get('update_available') else 'no'}"
-               f"</b>"
+               f"</b>{note_html}"
                "<form method=post action=/update_check "
                "style=display:inline> <button>Check now</button>"
                "</form>"

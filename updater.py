@@ -57,12 +57,21 @@ def apply():
         return
     state["update_available"] = False
     state["update_note"] = "updated just now"
+    r2 = subprocess.run(["sudo", "-n", "systemctl", "restart"]
+                        + SERVICES, capture_output=True, text=True)
+    if r2.returncode != 0:
+        # A pull that doesn't restart the services changes nothing
+        # the user can see — say so on the admin page instead of
+        # letting it fail silently (bit us Nov 12, 2026: new code
+        # on disk, old admin still serving).
+        state["update_note"] = (
+            "updated, but the service restart failed — the old "
+            "code is still running; restart visual-logbook-admin "
+            "from a terminal")
     logbook.save_state(state)
-    subprocess.run(["sudo", "-n", "systemctl", "restart"] + SERVICES,
-                   capture_output=True)
     subprocess.Popen([sys.executable,
                       os.path.join(HERE, "show_poster.py")], cwd=HERE)
-    print("updated")
+    print(state["update_note"])
 
 
 if __name__ == "__main__":
