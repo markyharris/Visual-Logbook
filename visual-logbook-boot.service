@@ -1,5 +1,5 @@
 [Unit]
-Description=Visual Logbook boot image (the aeroplane photo)
+Description=Visual Logbook boot sequence (aeroplane photo, then the poster)
 After=local-fs.target
 
 [Service]
@@ -7,6 +7,7 @@ Type=oneshot
 User=vislog
 WorkingDirectory=/home/vislog/Visual-Logbook
 ExecStart=/usr/bin/python3 /home/vislog/Visual-Logbook/show_boot.py
+ExecStart=/usr/bin/python3 /home/vislog/Visual-Logbook/show_poster.py
 
 [Install]
 WantedBy=multi-user.target
