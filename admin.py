@@ -307,17 +307,14 @@ def page(msg=""):
                "offer its setup access point for joining the new "
                "network from a phone.<br>"
                "<form method=post action=/rehome>"
-               "<label><input type=checkbox name=sure value=yes> "
-               "I understand — the frame will drop off this network"
-               "</label> <button>Forget Wi-Fi and reboot</button>"
+               "<button>Forget Wi-Fi and reboot</button> "
+               "— the frame will drop off this network."
                "</form></fieldset>")
     out.append("<fieldset class=sec-power><legend>Power</legend>"
                "<form method=post action=/power>"
                "<button name=act value=blank>Blank screen</button> "
                "— clear the panel; the frame stays on (with "
                "rotation on, the next plane's turn redraws it).<br>"
-               "<label><input type=checkbox name=sure value=yes> "
-               "I understand</label> "
                "<button name=act value=reboot>Reboot</button> "
                "<button name=act value=shutdown>Shut down</button> "
                "— shutdown clears the screen first, then powers "
@@ -609,11 +606,8 @@ class Handler(BaseHTTPRequestHandler):
                 run_bg("updater.py", "apply")
                 msg = "Updating — services restart; panel redraws after."
             elif path == "/rehome":
-                if f.get("sure") == "yes":
-                    run_bg("rehome.py")
-                    msg = "Wi-Fi forgotten; rebooting into setup mode."
-                else:
-                    msg = "Tick the understand box first."
+                run_bg("rehome.py")
+                msg = "Wi-Fi forgotten; rebooting into setup mode."
             elif path == "/power":
                 act = f.get("act", "")
                 if act == "blank":
@@ -621,13 +615,10 @@ class Handler(BaseHTTPRequestHandler):
                     msg = ("Blanking the panel — give it ~30 s "
                            "for the refresh.")
                 elif act in ("reboot", "shutdown"):
-                    if f.get("sure") == "yes":
-                        run_bg("power.py", act)
-                        msg = ("Rebooting…" if act == "reboot"
-                               else "Shutting down — the screen "
-                                    "clears first.")
-                    else:
-                        msg = "Tick the understand box first."
+                    run_bg("power.py", act)
+                    msg = ("Rebooting…" if act == "reboot"
+                           else "Shutting down — the screen "
+                                "clears first.")
                 else:
                     msg = "Unknown power action."
             else:

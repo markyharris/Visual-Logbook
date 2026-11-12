@@ -199,8 +199,10 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
     CSV Source column.
   - *Power*: Blank screen (drives the panel to white; the frame
     stays on — with rotation on, the next plane's turn redraws
-    it), Reboot, and Shut down, the last two behind a confirm
-    checkbox. Shutdown blanks the panel FIRST and only then
+    it), Reboot, and Shut down. The buttons act immediately —
+    there is no confirm checkbox (removed at the owner's
+    request, Nov 12, 2026; same for the Rehome button).
+    Shutdown blanks the panel FIRST and only then
     powers off, so a parked frame doesn't hold a poster forever.
     Reboot/poweroff need the sudoers entries from section 7 —
     note the /usr/bin/poweroff entry; frames set up before it
