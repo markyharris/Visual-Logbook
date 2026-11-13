@@ -615,8 +615,16 @@ class Handler(BaseHTTPRequestHandler):
                 run_bg("updater.py", "apply")
                 msg = "Updating — services restart; panel redraws after."
             elif path == "/rehome":
-                run_bg("rehome.py")
-                msg = "Wi-Fi forgotten; rebooting into setup mode."
+                import rehome as _rehome
+                if _rehome.comitup_ready():
+                    run_bg("rehome.py")
+                    msg = "Wi-Fi forgotten; rebooting into setup mode."
+                else:
+                    msg = ("Comitup is not installed on this frame, "
+                           "so Rehome is unavailable — forgetting "
+                           "the Wi-Fi now would strand it with no "
+                           "way back in. Install Comitup first "
+                           "(HOWTO section 7).")
             elif path == "/power":
                 act = f.get("act", "")
                 if act == "blank":

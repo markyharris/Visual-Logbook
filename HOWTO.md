@@ -140,6 +140,18 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
 
 (adjust the user name if yours differs).
 
+Rehoming needs Comitup — install and enable it as part of the
+build, not as a later step (the first frame skipped this and
+its Rehome button would have stranded it):
+
+```
+sudo apt install -y comitup
+sudo systemctl enable --now comitup
+```
+
+The admin's Rehome button checks that Comitup is present and
+enabled and refuses to forget the Wi-Fi without it.
+
 - **Admin page**: http://<pi>:8080 — add/edit planes, choose the
   one on display, show a poster or photo now, add flights by hand,
   fix unknown airports, set the photo dwell. Each plane's photo is
@@ -257,7 +269,8 @@ echo "vislog ALL=(root) NOPASSWD: /usr/bin/systemctl restart visual-logbook-admi
   style — Check now compares the clone against the repo; Update
   now pulls and restarts. `config.json`, the per-plane logs,
   photos and state are gitignored, so updates never touch them.
-- **Rehome**: install Comitup (the fleet's standard Pi rehoming —
-  see livesectional-lite's WIFI-PROVISIONING notes), then the
-  admin's Rehome button can forget the current Wi-Fi and reboot
-  into Comitup's phone-friendly setup access point.
+- **Rehome**: with Comitup installed and enabled (section 7),
+  the admin's Rehome button forgets the current Wi-Fi and
+  reboots into Comitup's phone-friendly setup access point.
+  Without Comitup the button refuses — forgetting the Wi-Fi
+  would strand the frame.
